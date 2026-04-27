@@ -181,6 +181,9 @@ h2 {
   line-height: 1;
   min-height: 0;
   white-space: nowrap;
+  font-size: 0.56rem;
+  letter-spacing: 0.09em;
+  opacity: 0.72;
 }
 
 .auth-panel .card-head > p:not(.section-tag) {
