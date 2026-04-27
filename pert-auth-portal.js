@@ -21,6 +21,8 @@ function setStatus(message, type = "info") {
   const statusBox = document.getElementById("statusBox");
   statusBox.className = `notice notice-${type}`;
   statusBox.textContent = message;
+  statusBox.classList.remove("hidden");
+  statusBox.hidden = false;
 }
 
 function showResetSection() {
@@ -73,7 +75,6 @@ function disableConfigWarningIfReady(supabaseClient) {
   const warning = document.getElementById("configWarning");
   if (supabaseClient) {
     warning.style.display = "none";
-    setStatus("Der Zugang ist bereit. Sie können sich jetzt anmelden oder Ihren Zugang anlegen.", "success");
   }
 }
 
