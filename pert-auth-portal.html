@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PERT-Methode | Kundenzugang</title>
+    <link rel="stylesheet" href="./pert-auth-portal.css?v=4" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./supabase-config.js"></script>
+    <script defer src="./pert-auth-portal.js?v=2"></script>
+  </head>
+  <body>
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <p class="eyebrow">BuiltSmart Hub</p>
+        <h1>Zugang zur PERT-Methode</h1>
+        <p class="hero-copy">
+          Nach dem Kauf ist dies Ihr Einstieg in die PERT-Methode.
+          Nach erfolgreichem Login prüft das System automatisch, ob für Ihre
+          E-Mail-Adresse ein aktiver Zugang besteht.
+        </p>
+        <div class="hero-points">
+          <article>
+            <strong>Dieselbe E-Mail wie beim Kauf</strong>
+            <p>Nutzen Sie hier exakt die E-Mail-Adresse aus dem Kaufprozess.</p>
+          </article>
+          <article>
+            <strong>Zugriff nur bei aktivem Status</strong>
+            <p>Die App wird nur angezeigt, wenn Ihr Zugang aktiv freigeschaltet ist.</p>
+          </article>
+          <article>
+            <strong>Spätere Sperrung möglich</strong>
+            <p>Nach Ablauf oder Kündigung wird der Zugriff automatisch verweigert.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div id="configWarning" class="notice notice-warn">
+          Der Zugang ist im Moment noch nicht vollständig eingerichtet.
+          Bitte versuchen Sie es später erneut oder wenden Sie sich an
+          info@built-smart-hub.com.
+        </div>
+
+        <div class="auth-panels">
+          <article class="auth-panel">
+            <div class="card-head">
+              <p class="section-tag">Schritt 2</p>
+              <h2>Anmelden</h2>
+              <p>
+                Wenn Sie bereits ein Login-Konto haben, melden Sie sich hier
+                direkt an. Nutzen Sie dafür dieselbe E-Mail-Adresse wie beim
+                Kauf.
+              </p>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+              <label class="field">
+                <span>E-Mail</span>
+                <input id="email" type="email" autocomplete="email" required />
+              </label>
+
+              <label class="field">
+                <span>Passwort</span>
+                <input
+                  id="password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                />
+              </label>
+
+              <div class="button-row">
+                <button type="submit" class="btn btn-primary">Einloggen</button>
+                <button type="button" id="forgotPasswordButton" class="btn btn-secondary">
+                  Passwort vergessen
+                </button>
+              </div>
+            </form>
+
+            <section id="resetPasswordSection" class="hidden" hidden>
+              <div id="resetPasswordIntro" class="notice notice-info hidden" hidden>
+                Wenn Sie Ihr Passwort vergessen haben, klicken Sie auf
+                <strong>Passwort vergessen</strong>. Nach dem Link aus der E-Mail
+                erscheint hier das Formular für Ihr neues Passwort.
+              </div>
+
+              <form id="resetPasswordForm" class="auth-form hidden" hidden>
+                <label class="field">
+                  <span>Neues Passwort</span>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                  />
+                </label>
+
+                <label class="field">
+                  <span>Neues Passwort wiederholen</span>
+                  <input
+                    id="confirmNewPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                  />
+                </label>
+
+                <div class="button-row">
+                  <button type="submit" class="btn btn-primary">Neues Passwort speichern</button>
+                </div>
+              </form>
+            </section>
+          </article>
+
+          <article class="auth-panel">
+            <div class="card-head">
+              <p class="section-tag">Schritt 3</p>
+              <h2>Zugang anlegen</h2>
+              <p>
+                Nutzen Sie <strong>Zugang anlegen</strong> nur dann, wenn Sie die
+                PERT-Methode bereits gekauft haben, aber sich bisher noch nie
+                eingeloggt haben.
+              </p>
+            </div>
+
+            <form id="registerForm" class="auth-form">
+              <label class="field">
+                <span>E-Mail für neuen Zugang</span>
+                <input id="registerEmail" type="email" autocomplete="email" required />
+              </label>
+
+              <label class="field">
+                <span>Neues Passwort</span>
+                <input
+                  id="registerPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  required
+                />
+              </label>
+
+              <button type="submit" class="btn btn-light">Zugang anlegen</button>
+            </form>
+          </article>
+        </div>
+
+        <div id="statusBox" class="notice notice-info">
+          Nach der Einrichtung erscheint hier der jeweilige Status.
+        </div>
+
+        <div class="helper-text">
+          <strong>Hinweis:</strong>
+          Bitte verwenden Sie beim Zugang anlegen und beim Anmelden dieselbe
+          E-Mail-Adresse, die Sie auch beim Kauf verwendet haben. Nur dann kann
+          Ihr Zugang automatisch freigeschaltet werden.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

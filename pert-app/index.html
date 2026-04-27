@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PERT-Methode – Baukostenprognose</title>
+<style>
+  @font-face {
+    font-family: 'Inter';
+    src: url('vendor/fonts/Geist-Latin.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    src: url('vendor/fonts/Geist-LatinExt.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0100-024F, U+1E00-1EFF;
+  }
+
+  @font-face {
+    font-family: 'Syne';
+    src: url('vendor/fonts/Geist-Latin.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'DM Serif Display';
+    src: local('Georgia'), local('Times New Roman');
+    font-weight: 400 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    /* ── Basis ── */
+    --ink:    #111827;        /* Tiefschwarz mit blauem Unterton */
+    --paper:  #f8f9fb;        /* Kühles Reinweiß */
+    --cream:  #f0f2f5;        /* Helles Grau für Sidebar */
+    --card:   #ffffff;        /* Kartenfläche */
+    --border: #e2e5ea;        /* Dezente Trennlinie */
+    --muted:  #6b7280;        /* Textstufe 2 */
+
+    /* ── Leitfarbe: Mitternachtsblau ── */
+    --navy:       #0f2444;    /* Tief, edel, dominant */
+    --navy-mid:   #1e3a5f;    /* Mittel für Hover/Akzente */
+    --navy-light: #e8edf5;    /* Heller Tint für Backgrounds */
+
+    /* ── Akzentgold: einzige Wärme ── */
+    --gold:       #b8882a;    /* Gesättigtes, edles Gold */
+    --gold-light: #fdf4e3;    /* Gold-Tint */
+
+    /* ── Signalfarben (nur für Daten) ── */
+    --signal-pos: #0d7a4e;    /* Positiv / Optimistisch */
+    --signal-neg: #c0392b;    /* Negativ / Pessimistisch */
+    --signal-neu: #2563a8;    /* Neutral / Erwartungswert */
+
+    /* ── Aliases für Kompatibilität ── */
+    --accent:  #c0392b;
+    --accent2: #0d7a4e;
+    --accent3: #0f2444;
+    --warm:    #b8882a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #071526 0%, #0d2340 56%, #163758 100%);
+    color: var(--paper);
+    padding: clamp(1.5rem, 3vw, 2.2rem) clamp(1.2rem, 3vw, 3rem) clamp(1.25rem, 2.5vw, 1.8rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr);
+    align-items: end;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+    flex-wrap: wrap;
+    border-bottom: 3px solid var(--gold);
+  }
+
+  header::before {
+    content: none;
+    display: none;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .header-left .brand-line {
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.82rem;
+    color: rgba(248,249,251,0.72);
+    font-weight: 700;
+  }
+
+  .header-left .suite-line {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.02em;
+    font-size: 1rem;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff;
+    opacity: 1;
+    font-weight: 800;
+    text-transform: none;
+    text-shadow: none;
+  }
+
+  .header-left h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.5rem, 4.4vw, 4rem);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .header-left h1 em {
+    color: rgba(228,235,245,0.8);
+    font-style: normal;
+  }
+
+  .header-left .header-subline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+  }
+
+  .header-left .header-subline span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .header-left .header-subline span:not(:last-child)::after {
+    content: '|';
+    color: rgba(255,255,255,0.75);
+    margin-left: 0.2rem;
+  }
+
+  .header-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.9rem;
+    min-width: 0;
+    align-self: start;
+    padding-top: 0;
+  }
+
+  .header-metric .metric-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(248,249,251,0.62);
+    font-weight: 800;
+    margin-bottom: 0.45rem;
+  }
+
+  .header-metric .metric-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-top: 0;
+    transform: translateY(2.8rem);
+  }
+
+  .header-actions button {
+    min-height: 2.4rem;
+    padding: 0.5rem 0.95rem;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.16) inset;
+    transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .header-actions button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15,36,68,0.08);
+  }
+
+  .toggle-inputs {
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    border-color: #ffffff;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 10px 22px rgba(9,24,48,0.12);
+  }
+
+  .toggle-inputs:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: #ffffff;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.16) inset, 0 12px 26px rgba(9,24,48,0.16);
+  }
+
+  .toggle-inputs.active {
+    background: #ffffff;
+    color: var(--navy);
+    border-color: #ffffff;
+    box-shadow: 0 10px 22px rgba(9,24,48,0.14);
+  }
+
+  .toggle-inputs:focus,
+  .toggle-inputs:focus-visible {
+    outline: none;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.26), 0 10px 22px rgba(9,24,48,0.12);
+  }
+
+  .help-save {
+    background: rgba(255,255,255,0.94);
+    color: var(--navy);
+    border-color: rgba(17,24,39,0.08);
+  }
+
+  .help-save:hover {
+    background: #ffffff;
+    border-color: rgba(17,24,39,0.14);
+  }
+
+  .pdf-export {
+    background: linear-gradient(180deg, #c79a41 0%, #b8882a 100%);
+    color: #0f172a;
+    border-color: rgba(184,136,42,0.65);
+  }
+
+  .pdf-export:hover {
+    background: linear-gradient(180deg, #d1a853 0%, #c79a41 100%);
+    border-color: rgba(184,136,42,0.8);
+  }
+
+  .header-badge span {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(248,249,251,0.72);
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: calc(100vh - 130px);
+  }
+
+  /* CONTROL PANEL */
+  .sidebar {
+    background: #f0f2f5;
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    min-height: auto;
+    overflow: hidden;
+    max-height: 1800px;
+    opacity: 1;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease, border-width 0.25s ease;
+  }
+
+  .sidebar.is-collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-width: 0;
+    pointer-events: none;
+  }
+
+  .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .proj-manager,
+  .project-block,
+  .control-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .proj-manager { grid-column: 1 / -1; }
+
+  .project-block,
+  .control-card {
+    padding: 1rem;
+    display: block;
+  }
+
+  .project-block .section-label,
+  .control-card .section-label {
+    margin-bottom: 0.85rem;
+  }
+
+  .workspace-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #fbfcfe 0%, #f4f6fa 100%);
+  }
+
+  .workspace-strip strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--navy);
+  }
+
+  .workspace-strip span {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .workspace-link {
+    color: var(--navy);
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .workspace-link:hover {
+    color: var(--navy-mid);
+  }
+
+  .site-footer {
+    margin: 0.6rem 0.8rem 0.8rem;
+    padding: 0.8rem 1rem;
+    border-top: 1px solid rgba(226,229,234,0.9);
+    background: rgba(248,249,251,0.72);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .site-footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .site-footer-left strong {
+    font-size: 0.88rem;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .site-footer-left span {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .site-footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .site-footer-nav a {
+    color: rgba(17,24,39,0.86);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .site-footer-nav a:hover {
+    color: var(--navy);
+    text-decoration: underline;
+  }
+
+  .site-footer-nav .divider {
+    width: auto;
+    height: auto;
+    background: none;
+    color: rgba(17,24,39,0.55);
+    font-size: 0.9rem;
+    line-height: 1;
+    margin: 0 0.3rem;
+    font-weight: 400;
+    transform: translateY(-0.02rem);
+  }
+
+  @media (max-width: 900px) {
+    .site-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 0.9rem;
+    }
+
+    .site-footer-nav {
+      justify-content: flex-start;
+      gap: 0.45rem;
+    }
+
+    .site-footer-nav .divider {
+      display: inline-block;
+    }
+  }
+
+  .workspace-strip .workspace-pill {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--navy);
+    background: var(--navy-light);
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .input-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(440px, 92vw);
+    height: 100vh;
+    background: #f0f2f5;
+    border-left: 1px solid var(--border);
+    box-shadow: -18px 0 40px rgba(15,36,68,0.14);
+    transform: translateX(100%);
+    transition: transform 0.32s ease;
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .input-panel.is-open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .input-panel-header {
+    background: linear-gradient(135deg, #0a1a30 0%, var(--navy) 100%);
+    color: #fff;
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 2px solid var(--gold);
+    flex-shrink: 0;
+  }
+
+  .input-panel-header strong {
+    font-family: 'Syne', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+  }
+
+  .input-panel-close {
+    border: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .input-panel-body {
+    padding: 1rem;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-content: start;
+    grid-auto-rows: min-content;
+  }
+
+  .input-panel-body > * {
+    min-height: 0;
+    align-self: start;
+  }
+
+  .panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,12,0.34);
+    z-index: 3500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .panel-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* PROJECT INFO */
+  .project-block input,
+  .project-block select {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.65rem 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 0.6rem;
+    height: 2.6rem;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .project-block input:focus,
+  .project-block select:focus { border-color: var(--navy); }
+
+  .bgf-input {
+    letter-spacing: 0.01em;
+  }
+
+  .select-wrap {
+    position: relative;
+    display: block;
+  }
+
+  .select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0.85rem;
+    top: 40%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1.15rem 1.15rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b7280' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7.5 10 12.5 15 7.5'/%3E%3C/svg%3E");
+  }
+
+  .select-wrap select {
+    padding-right: 2.35rem;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: none;
+  }
+
+  .project-inline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 0.8rem;
+    align-items: start;
+  }
+
+  .project-field {
+    min-width: 0;
+  }
+
+  .project-field input,
+  .project-field .select-wrap {
+    margin-bottom: 0;
+  }
+
+  .project-block label {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+
+  /* GEWERKE */
+  .gewerke-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .gewerk-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem;
+    position: relative;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .gewerk-row:hover { border-color: var(--navy); box-shadow: 0 2px 8px rgba(15,36,68,0.08); }
+
+  .gewerk-row .gewerk-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    padding-right: 22px; /* space for del-btn */
+    min-width: 0;
+  }
+
+  .gewerk-name-dot-wrap {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .gewerk-name-input {
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    outline: none;
+    padding: 2px 0 3px 0;
+    cursor: text;
+    color: var(--ink);
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    line-height: 1.4;
+  }
+
+  .gewerk-color-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.4rem;
+  }
+
+  .gewerk-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  /* FORMATTED NUMBER INPUTS */
+  .num-wrapper { position: relative; }
+
+  .num-display {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.45rem 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    background: var(--paper);
+    color: var(--ink);
+    text-align: right;
+    cursor: text;
+    min-height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    transition: border-color 0.15s;
+  }
+  .num-display:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 2px rgba(15,36,68,0.08);
+    outline: none;
+  }
+  .num-display.editing { display: none; }
+
+  .num-edit {
+    width: 100%;
+    border: 1px solid var(--navy);
+    border-radius: 2px;
+    padding: 0.45rem 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    text-align: right;
+    display: none;
+    -webkit-appearance: none;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .num-edit.editing { display: block; }
+
+  .num-edit::-webkit-outer-spin-button,
+  .num-edit::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .input-hint {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.2rem;
+    font-weight: 500;
+  }
+
+  .del-btn {
+    position: absolute;
+    top: 0.5rem; right: 0.5rem;
+    width: 18px; height: 18px;
+    background: none; border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px;
+    transition: background 0.1s, color 0.1s;
+  }
+  .del-btn:hover { background: var(--accent); color: #fff; }
+
+  .add-btn {
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px dashed var(--border);
+    background: transparent;
+    border-radius: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .add-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-light); }
+
+  /* SECURITY LEVEL */
+  .security-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .sec-btn {
+    padding: 0.9rem 0.5rem 0.75rem;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: center;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .sec-btn:hover { border-color: var(--navy); background: var(--navy-light); color: var(--navy); }
+  .sec-btn.active { background: var(--navy); color: #ffffff; border-color: var(--navy); }
+
+  .sec-btn .sec-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    display: block;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .sec-btn .sec-desc { font-size: 0.72rem; font-weight: 600; opacity: 0.8; }
+  .sec-btn.active .sec-desc { opacity: 0.7; }
+
+  /* CONTENT AREA */
+  .content {
+    padding: clamp(1rem, 2vw, 2rem) clamp(1rem, 2.5vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1.25rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .kpi-card.kpi-ew::before  { background: var(--navy); }
+  .kpi-card.kpi-84::before  { background: var(--signal-pos); }
+  .kpi-card.kpi-975::before { background: var(--gold); }
+  .kpi-card.kpi-sd::before  { background: var(--muted); }
+
+  .kpi-card .kpi-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .kpi-card .kpi-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.9rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .kpi-card.kpi-ew .kpi-value  { color: var(--navy); }
+  .kpi-card.kpi-84 .kpi-value  { color: var(--signal-pos); }
+  .kpi-card.kpi-975 .kpi-value { color: var(--gold); }
+  .kpi-card.kpi-sd .kpi-value  { color: var(--muted); }
+
+  .kpi-card .kpi-sub {
+    font-size: 0.73rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .chart-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    height: 330px;
+  }
+
+  .chart-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 0;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .chart-block.block-pie { justify-content: flex-start; }
+  .chart-block.block-pie h3 { margin-bottom: 0.2rem; }
+  .chart-block.block-pie canvas { margin-top: 0; flex: 1; }
+  .chart-block.block-bar { justify-content: flex-end; }
+  .chart-block.block-bar h3 { margin-bottom: auto; }
+  .chart-block.block-bar canvas { flex: none; height: 260px !important; }
+
+  canvas { width: 100% !important; }
+
+  /* DISTRIBUTION CURVE */
+  .dist-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1.4rem;
+  }
+
+  .dist-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    color: var(--ink);
+  }
+
+  /* RESULTS TABLE */
+  .results-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .results-header {
+    background: var(--navy);
+    color: #ffffff;
+    padding: 0.85rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .results-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+  thead th {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.7rem 0.9rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  thead th:first-child { text-align: left; }
+
+  tbody tr:not(:last-child) { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: rgba(0,0,0,0.02); }
+
+  tbody td {
+    padding: 0.75rem 0.9rem;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.45;
+    vertical-align: middle;
+  }
+
+  tbody td:first-child {
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    padding-top: 0.9rem;
+    padding-bottom: 0.95rem;
+  }
+
+  tfoot td {
+    padding: 0.85rem 0.9rem;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    background: var(--navy);
+    color: #ffffff;
+    border-top: 3px solid var(--gold);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  tfoot td:first-child {
+    text-align: left;
+    font-weight: 800;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
+  .tag-o { background: #d1fae5; color: #065f46; padding: 0.15rem 0.45rem; border-radius: 2px; font-size: 0.72rem; font-weight: 600; }
+  .tag-m { background: #dbeafe; color: #1e3a5f; padding: 0.15rem 0.45rem; border-radius: 2px; font-size: 0.72rem; font-weight: 600; }
+  .tag-p { background: #fee2e2; color: #991b1b; padding: 0.15rem 0.45rem; border-radius: 2px; font-size: 0.72rem; font-weight: 600; }
+
+  /* FORMULA BOX */
+  .formula-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .formula-card {
+    background: var(--navy);
+    color: var(--paper);
+    border-radius: 3px;
+    padding: 1.2rem 1.4rem;
+    border-left: 3px solid var(--gold);
+  }
+
+  .formula-card .f-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(248,249,251,0.75);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .formula-card .f-formula {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    line-height: 1.7;
+  }
+
+  .formula-card .f-desc {
+    font-size: 0.75rem;
+    color: rgba(248,249,251,0.7);
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1300px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .formula-row { grid-template-columns: 1fr 1fr; }
+    .content { padding: 1.5rem; }
+    .sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 1050px) {
+    .formula-row { grid-template-columns: 1fr; }
+    .charts-row { grid-template-columns: 1fr; }
+    .content { padding: 1.2rem; gap: 1.2rem; }
+    header { padding: 1.8rem 1.5rem; }
+    .sidebar { grid-template-columns: 1fr; }
+    .project-inline { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 800px) {
+    header { grid-template-columns: 1fr; align-items: start; padding: 1.4rem; }
+    .header-badge { align-items: flex-start; }
+    .header-metric { text-align: left; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .content { padding: 1rem; }
+    .sidebar { padding: 1rem; }
+  }
+
+  @media (max-width: 900px) {
+    .input-panel {
+      width: 100vw;
+    }
+  }
+
+  /* ANIMATIONS */
+  .kpi-value { transition: all 0.3s ease; }
+
+  .gewerk-row { animation: slideIn 0.2s ease; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-style: italic;
+  }
+
+  .proj-manager-header {
+    background: var(--navy);
+    color: #fff;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--gold);
+  }
+
+  .proj-info-box {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+  }
+
+  .proj-info-box strong { color: var(--ink); }
+
+  .proj-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    padding: 0.7rem 0.9rem;
+  }
+
+  .proj-btn {
+    padding: 0.55rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--card);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+
+  .proj-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-light); }
+
+  .proj-btn.save  { background: var(--navy); color: #fff; border-color: var(--navy); grid-column: 1 / -1; border-bottom: 2px solid var(--gold); }
+  .proj-btn.save:hover { background: var(--navy-mid); border-color: var(--navy-mid); }
+
+  .proj-btn.demo {
+    background: rgba(184,136,42,0.12);
+    color: var(--navy);
+    border-color: rgba(184,136,42,0.5);
+    font-weight: 700;
+  }
+
+  .proj-btn.demo:hover {
+    background: rgba(184,136,42,0.18);
+    border-color: rgba(184,136,42,0.7);
+    color: var(--navy);
+  }
+
+  .proj-btn.danger:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,68,26,0.04); }
+
+  .proj-current-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    padding: 0.6rem 0.9rem 0;
+    line-height: 1.5;
+  }
+  /* CUSTOM MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,12,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.15s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.8rem 2rem;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    animation: slideUp 0.18s ease;
+  }
+
+  @keyframes slideUp { from { transform: translateY(12px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+  .modal-box h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0;
+  }
+
+  .modal-box p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 1.35rem;
+  }
+
+  .modal-box p strong { color: var(--accent); }
+
+  .modal-btns {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+  }
+
+  .modal-btn {
+    padding: 0.55rem 1.2rem;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--card);
+    color: var(--ink);
+  }
+
+  .modal-btn:hover { border-color: var(--muted); }
+  .modal-btn.confirm { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .modal-btn.confirm:hover { opacity: 0.88; }
+
+  .help-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,12,0.62);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+  }
+
+  .help-card {
+    width: min(1140px, 96vw);
+    max-height: min(86vh, 760px);
+    overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfd 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+  }
+
+  .help-hero {
+    padding: 1rem 1.2rem;
+    background: linear-gradient(135deg, #0a1a30 0%, var(--navy) 62%, #1e3a5f 100%);
+    color: #fff;
+    border-bottom: 3px solid var(--gold);
+  }
+
+  .help-hero h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.45rem, 2vw, 1.95rem);
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: 0;
+    margin-bottom: 0.55rem;
+  }
+
+  .help-hero p {
+    color: rgba(255,255,255,0.78);
+    max-width: none;
+    white-space: normal;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .help-body {
+    padding: 1rem 1.2rem 1.05rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .help-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 0.85rem;
+  }
+
+  .help-block h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.86rem;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .help-block p,
+  .help-block li {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .help-block ul {
+    margin-left: 1rem;
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .help-note {
+    background: var(--gold-light);
+    border-left: 4px solid var(--gold);
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    margin-top: 0.55rem;
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+
+  .help-footer {
+    padding: 0 1.2rem 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .help-footer button {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--ink);
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .help-footer .primary {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .help-body { grid-template-columns: 1fr; }
+    .help-card { height: auto; max-height: 94vh; overflow: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CUSTOM CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal" style="display:none;">
+  <div class="modal-box">
+    <h4 id="modalTitle">Neues Projekt</h4>
+    <p id="modalText">Aktuelles Projekt verwerfen und leere Maske öffnen?<br><strong>Tipp: Erst speichern, um Daten nicht zu verlieren!</strong></p>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="closeModal()">Abbrechen</button>
+      <button class="modal-btn confirm" id="modalConfirmBtn">Ja, Projekt leeren</button>
+    </div>
+  </div>
+</div>
+
+<div class="help-overlay" id="storageHelpOverlay" aria-hidden="true">
+  <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="storageHelpTitle">
+    <div class="help-hero">
+      <h2 id="storageHelpTitle">Speichern & Dateien</h2>
+      <p>Hier siehst du genau, was die Anwendung speichert, wo die Daten liegen und welche Folgen die jeweilige Speicherart hat.</p>
+    </div>
+    <div class="help-body">
+      <section class="help-block">
+        <h3>1. Was wird automatisch gespeichert?</h3>
+        <ul>
+          <li>Projektname, BGF, Leistungsphase und Sicherheitsniveau</li>
+          <li>Alle Gewerke mit O, M und P</li>
+          <li>Der letzte Arbeitsstand in der Browser-Speicherung</li>
+        </ul>
+        <div class="help-note">Wenn du etwas änderst, speichert die App den Stand automatisch im Browser. Du musst also nicht jedes Mal manuell sichern.</div>
+      </section>
+      <section class="help-block">
+        <h3>2. Wo liegen die Browser-Daten?</h3>
+        <p>Die Daten liegen lokal im Browser des Geräts und bleiben dort gespeichert, solange der Browser seine Website-Daten nicht löscht.</p>
+        <p>Das bedeutet: gleicher Browser und gleiches Gerät = Daten bleiben da. Neuer Browser oder gelöschte Website-Daten = Daten weg.</p>
+      </section>
+      <section class="help-block">
+        <h3>3. Wofür ist die JSON-Datei?</h3>
+        <p>Die JSON-Datei ist dein Backup und Austauschformat. Beim Klick auf „Projektdatei speichern“ wird die Datei in den Download-Ordner des Geräts geladen oder an den Speicherort abgelegt, den dein Browser gewählt hat.</p>
+        <p>Dort kannst du sie archivieren, weitergeben oder später über „Projektdatei laden“ wieder einlesen.</p>
+        <p>Die JSON-Datei ist nicht zwingend nötig für die tägliche Arbeit, aber sehr sinnvoll als Sicherung.</p>
+      </section>
+      <section class="help-block">
+        <h3>4. Welche Folgen haben die Speicherarten?</h3>
+        <ul>
+          <li><strong>Browser-Speicherung:</strong> bequem, automatisch, aber an Gerät und Browser gebunden</li>
+          <li><strong>JSON-Export:</strong> manuell, dafür sicher als Datei und portabel</li>
+        </ul>
+      </section>
+      <section class="help-block">
+        <h3>5. Was passiert bei „Neues Projekt“?</h3>
+        <p>Die aktuellen Eingaben werden gelöscht, die Browser-Speicherung wird zurückgesetzt und ein leeres Projekt startet. Falls du vorher nicht exportiert hast, sind die bisherigen Browser-Daten weg.</p>
+      </section>
+      <section class="help-block">
+        <h3>6. Meine Empfehlung</h3>
+        <p>Arbeite mit der automatischen Browser-Speicherung für den Alltag und exportiere zusätzlich regelmäßig eine JSON-Datei als Backup.</p>
+        <div class="help-note">So hast du Komfort und Sicherheit gleichzeitig.</div>
+      </section>
+    </div>
+    <div class="help-footer">
+      <button onclick="closeStorageHelp()">Schließen</button>
+      <button class="primary" onclick="closeStorageHelp()">Verstanden</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="brand-line">BuiltSmart Hub</div>
+    <div class="suite-line">RISK MANAGEMENT SUITE</div>
+    <h1>PERT <em>– Methode</em></h1>
+    <div class="header-subline">
+      <span>Erwartungswert</span>
+      <span>84%-Niveau</span>
+      <span>97,5%-Niveau</span>
+      <span>Standardabweichung</span>
+    </div>
+  </div>
+  <div class="header-badge">
+    <div class="header-metric" style="text-align:right;">
+      <div class="metric-label">METHODE</div>
+      <div class="metric-value">Program Evaluation &amp; Review Technique</div>
+    </div>
+    <div class="header-actions">
+      <button class="toggle-inputs" onclick="toggleInputPanel()" id="showInputsBtn">Projekt-Eingaben</button>
+      <button class="help-save" onclick="openStorageHelp()">Speichern & Dateien</button>
+      <button class="pdf-export" onclick="exportPDF()">
+        PDF exportieren
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="content">
+    <div class="workspace-strip">
+      <div>
+        <strong>Analysefläche</strong><br>
+        <span>Auswertung im Fokus, <a href="#" class="workspace-link" onclick="toggleInputPanel(); return false;">Eingaben rechts als Panel</a>.</span>
+      </div>
+      <div class="workspace-pill" id="workspaceState">Eingaben geschlossen</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card kpi-ew">
+        <div class="kpi-label">Erwartungswert (EW)</div>
+        <div class="kpi-value" id="kpiEW">–</div>
+        <div class="kpi-sub">EW = (O + 4M + P) / 6</div>
+      </div>
+      <div class="kpi-card kpi-84">
+        <div class="kpi-label">Budget 84%-Niveau</div>
+        <div class="kpi-value" id="kpi84">–</div>
+        <div class="kpi-sub">EW + 1 × SD</div>
+      </div>
+      <div class="kpi-card kpi-975">
+        <div class="kpi-label">Budget 97,5%-Niveau</div>
+        <div class="kpi-value" id="kpi975">–</div>
+        <div class="kpi-sub">EW + 2 × SD</div>
+      </div>
+      <div class="kpi-card kpi-sd">
+        <div class="kpi-label">Standardabweichung (SD)</div>
+        <div class="kpi-value" id="kpiSD">–</div>
+        <div class="kpi-sub">SD = (P − O) / 6</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-card">
+        <div class="f-label">Erwartungswert</div>
+        <div class="f-formula">EW = (O + 4 <span style="font-size:0.85em">x</span> M + P) / 6</div>
+        <div class="f-desc">Gewichteter Mittelwert mit 4-facher Gewichtung des wahrscheinlichsten Wertes.</div>
+      </div>
+      <div class="formula-card">
+        <div class="f-label">Standardabweichung</div>
+        <div class="f-formula">SD = (P − O) / 6</div>
+        <div class="f-desc">Basiert auf 6σ-Annahme: O und P liegen je ±3 SD vom Erwartungswert entfernt.</div>
+      </div>
+      <div class="formula-card">
+        <div class="f-label">Gesamtvarianz (Aggregation)</div>
+        <div class="f-formula">Var<sub>ges</sub> = &Sigma; SD&sup2;&emsp;&emsp;&emsp;&emsp;&emsp;SD<sub>ges</sub> = &radic;Var<sub>ges</sub></div>
+        <div class="f-desc">Varianzen werden addiert, nicht Standardabweichungen – mathematisch korrekte Aggregation.</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-block block-pie">
+        <h3>Kostenverteilung nach Gewerken</h3>
+        <canvas id="chartGewerke"></canvas>
+      </div>
+      <div class="chart-block block-bar">
+        <h3>Szenariovergleich (O / EW / M / P)</h3>
+        <canvas id="chartSzenarien" height="260"></canvas>
+      </div>
+    </div>
+
+    <div class="dist-block">
+      <h3>Normalverteilungskurve – Wahrscheinlichkeitsverteilung der Baukosten</h3>
+      <canvas id="chartDist" height="250"></canvas>
+    </div>
+
+    <div class="results-block">
+      <div class="results-header">
+        <h3>Detailauswertung nach Gewerken</h3>
+        <span style="font-size:0.78rem;opacity:0.6;font-family:'Inter',sans-serif;" id="projInfo">–</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Gewerk</th>
+            <th><span class="tag-o">O</span> Optimistisch</th>
+            <th><span class="tag-m">M</span> Wahrsch.</th>
+            <th><span class="tag-p">P</span> Pessimistisch</th>
+            <th>Erwartungswert</th>
+            <th>SD</th>
+            <th>Varianz</th>
+            <th>Spannweite</th>
+            <th>€ / m² BGF</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="9" class="no-data">Noch keine Kostenpositionen erfasst.</td></tr>
+        </tbody>
+        <tfoot id="resultsFoot"></tfoot>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<div class="panel-backdrop" id="panelBackdrop" onclick="closeInputPanel()"></div>
+
+<aside class="input-panel" id="inputPanel" aria-hidden="true">
+  <div class="input-panel-header">
+    <strong>Eingaben</strong>
+    <button class="input-panel-close" onclick="closeInputPanel()" aria-label="Eingaben schließen">×</button>
+  </div>
+  <div class="input-panel-body">
+    <div class="proj-manager">
+      <div class="proj-manager-header">Projektverwaltung</div>
+      <div class="proj-info-box">
+        Projekte werden als <strong>Projektdatei</strong> auf Ihrem Computer gespeichert und können jederzeit wieder geladen werden.
+        <br>Weitere Infos siehe <a href="#" class="workspace-link" onclick="openStorageHelp(); return false;">Hinweise Speichern &amp; Dateien</a>.
+      </div>
+      <div class="proj-info-box" style="border-top:1px solid var(--border);">
+        Die <strong>Demo-Vorlage</strong> ist fest im Code hinterlegt und kann über den Demo-Button geladen werden.
+      </div>
+      <div class="proj-current-name" id="projCurrentName">Kein Projekt geladen</div>
+      <div class="proj-actions">
+        <button class="proj-btn save" onclick="saveProjectJSON()">💾 Projektdatei speichern</button>
+        <button class="proj-btn" onclick="promptLoadProject()">📂 Projektdatei laden</button>
+        <button class="proj-btn demo" onclick="loadDemoProject()">▶ Demo-Vorlage laden</button>
+        <button class="proj-btn danger" onclick="newProject()">＋ Neues Projekt</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="loadProjectJSON(event)">
+    </div>
+
+    <div class="project-block">
+      <div class="section-label">Projektinformationen</div>
+      <label>Projektbezeichnung</label>
+      <input type="text" id="projName" placeholder="z.B. Bürogebäude München" value="Bürogebäude München">
+      <div class="project-inline">
+        <div class="project-field">
+          <label>BGF in m²</label>
+          <input type="text" id="projBGF" class="bgf-input" placeholder="3.000" value="3.000" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="project-field">
+          <label>Leistungsphase</label>
+          <div class="select-wrap">
+            <select id="projLP">
+              <option value="LPH 1">LPH 1 – Grundlagenermittlung</option>
+              <option value="LPH 2" selected>LPH 2 – Vorplanung</option>
+              <option value="LPH 3">LPH 3 – Entwurfsplanung</option>
+              <option value="LPH 4">LPH 4 – Genehmigungsplanung</option>
+              <option value="LPH 5">LPH 5 – Ausführungsplanung</option>
+              <option value="LPH 6">LPH 6 – Vorbereitung der Vergabe</option>
+              <option value="LPH 7">LPH 7 – Mitwirkung bei der Vergabe</option>
+              <option value="LPH 8">LPH 8 – Objektüberwachung</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-card">
+      <div class="section-label">Gewerke / Kostenpositionen</div>
+      <div class="gewerke-list" id="gewerkeListe"></div>
+      <button class="add-btn" onclick="addGewerk()">+ Kostenposition hinzufügen</button>
+    </div>
+
+    <div class="control-card">
+      <div class="section-label">Sicherheitsniveau</div>
+      <div class="security-selector">
+        <button class="sec-btn" data-sd="0" onclick="setSecurity(0)">
+          <span class="sec-pct">50%</span>
+          <span class="sec-desc">Erwartungswert</span>
+        </button>
+        <button class="sec-btn active" data-sd="1" onclick="setSecurity(1)">
+          <span class="sec-pct">84%</span>
+          <span class="sec-desc">Budget+</span>
+        </button>
+        <button class="sec-btn" data-sd="2" onclick="setSecurity(2)">
+          <span class="sec-pct">97,5%</span>
+          <span class="sec-desc">Konservativ</span>
+        </button>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.78rem;color:var(--muted);line-height:1.6;" id="secDesc">
+        <strong>84%-Niveau (EW + 1 SD):</strong> Empfohlen für dynamische Marktumfelder. Wahrscheinlichkeit einer Budgetüberschreitung ca. 16%.
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+<footer class="site-footer">
+  <div class="site-footer-left">
+    <span>© 2026 BuiltSmart Hub | Bernhard Metzger</span>
+    <span>PERT-Methode · Baukostenprognose</span>
+  </div>
+  <nav class="site-footer-nav" aria-label="Rechtliche Links">
+    <a href="https://www.built-smart-hub.com" target="_blank" rel="noopener noreferrer">BuiltSmart Hub</a>
+    <span class="divider" aria-hidden="true">|</span>
+    <a href="https://www.built-smart-hub.com/kontakt" target="_blank" rel="noopener noreferrer">Kontakt</a>
+    <span class="divider" aria-hidden="true">|</span>
+    <a href="https://www.built-smart-hub.com/impressum" target="_blank" rel="noopener noreferrer">Impressum</a>
+    <span class="divider" aria-hidden="true">|</span>
+    <a href="https://www.built-smart-hub.com/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz</a>
+    <span class="divider" aria-hidden="true">|</span>
+    <a href="https://www.built-smart-hub.com/agb" target="_blank" rel="noopener noreferrer">AGB</a>
+    <span class="divider" aria-hidden="true">|</span>
+    <a href="https://www.built-smart-hub.com/widerrufbelehrung" target="_blank" rel="noopener noreferrer">Widerruf</a>
+  </nav>
+</footer>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="vendor/html2canvas.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script>
+var gewerke  = [];
+var secLevel = 1;
+var chartGewerke, chartSzenarien, chartDist;
+
+var COLORS = ['#0f2444','#b8882a','#0d7a4e','#2563a8','#64748b','#1e3a5f','#7c6220','#374151'];
+var PROJECT_STORAGE_KEY = 'pert_methode_browser_project_v1';
+var saveTimer = null;
+var inputPanelIsOpen = false;
+var storageHelpIsOpen = false;
+
+var SEC_DESCS = [
+  '<strong>50%-Niveau (Erwartungswert):</strong> Operative Projektsteuerung. Wahrscheinlichkeit einer Überschreitung ca. 50%.',
+  '<strong>84%-Niveau (EW + 1 SD):</strong> Empfohlen für dynamische Marktumfelder. Wahrscheinlichkeit einer Budgetüberschreitung ca. 16%.',
+  '<strong>97,5%-Niveau (EW + 2 SD):</strong> Für risikoaverse Investoren und Finanzierungsentscheidungen. Überschreitungsrisiko ca. 2,5%.'
+];
+
+var defaultGewerke = [
+  { name: 'Rohbau',                        o: 3600000, m: 4000000, p: 4800000 },
+  { name: 'Technische Gebäudeausrüstung',  o:  950000, m: 1100000, p: 1450000 },
+  { name: 'Ausbau & Fassade',              o:  800000, m:  950000, p: 1200000 }
+];
+
+var DEMO_PROJECT_TEMPLATE = {
+  version: '1.0',
+  name: 'Bürogebäude München',
+  bgf: 3000,
+  lp: 'LPH 2',
+  secLevel: 1,
+  gewerke: [
+    { id: 'demo-rohbau', name: 'Rohbau', o: 3600000, m: 4000000, p: 4800000 },
+    { id: 'demo-tga', name: 'Technische Gebäudeausrüstung', o: 950000, m: 1100000, p: 1450000 },
+    { id: 'demo-ausbau', name: 'Ausbau & Fassade', o: 800000, m: 950000, p: 1200000 }
+  ]
+};
+
+// ——— HELPERS ———
+function uid() { return Math.random().toString(36).substr(2,8); }
+
+function fmt(n) {
+  if (isNaN(n) || n === 0) return '–';
+  return new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', minimumFractionDigits:0, maximumFractionDigits:0 }).format(n);
+}
+
+function fmtShort(n) {
+  if (isNaN(n) || n === 0) return '–';
+  if (n >= 1e6) return (n/1e6).toFixed(2).replace('.',',') + ' Mio. €';
+  if (n >= 1e3) return (n/1e3).toFixed(0) + ' T€';
+  return fmt(n);
+}
+
+function fmtInput(n) {
+  if (!n && n !== 0) return '';
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits:0, maximumFractionDigits:0 }).format(n) + ' €';
+}
+
+function fmtBGF(val, bgf) {
+  if (!bgf || bgf <= 0 || isNaN(val) || val === 0) return '\u2013';
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits:0, maximumFractionDigits:0 }).format(val / bgf) + '\u00a0€/m²';
+}
+
+function fmtVariance(n) {
+  if (isNaN(n) || n === 0) return '–';
+  var mio = n / 1e6;
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits:2, maximumFractionDigits:2 }).format(mio) + ' Mio. EUR²';
+}
+
+function parseFormattedNumber(val) {
+  var clean = String(val || '').replace(/[^\d-]/g, '');
+  return clean ? parseInt(clean, 10) || 0 : 0;
+}
+
+function formatThousands(n) {
+  if (n === '' || n === null || typeof n === 'undefined') return '';
+  var num = parseFormattedNumber(n);
+  return num ? new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(num) : '';
+}
+
+function syncBGFField() {
+  var el = document.getElementById('projBGF');
+  if (!el) return;
+  el.value = formatThousands(el.value);
+}
+
+function getPanelFocusables() {
+  var panel = document.getElementById('inputPanel');
+  if (!panel) return [];
+  return Array.prototype.slice.call(panel.querySelectorAll(
+    '#projName, #projBGF, #projLP, .gewerk-name-input, .num-display, .num-edit, .sec-btn'
+  )).filter(function(el) {
+    return !el.disabled && (el.offsetParent !== null || el === document.activeElement);
+  });
+}
+
+function focusFirstPanelField() {
+  var fields = getPanelFocusables();
+  if (fields.length) {
+    fields[0].focus();
+  }
+}
+
+function updateBodyScrollLock() {
+  document.body.style.overflow = (inputPanelIsOpen || storageHelpIsOpen) ? 'hidden' : '';
+}
+
+function trapPanelTab(ev) {
+  if (ev.key !== 'Tab') return;
+  var panel = document.getElementById('inputPanel');
+  if (!panel || !panel.classList.contains('is-open')) return;
+  if (!panel.contains(document.activeElement)) return;
+
+  var fields = getPanelFocusables();
+  if (!fields.length) return;
+
+  ev.preventDefault();
+  var current = fields.indexOf(document.activeElement);
+  if (current === -1) current = 0;
+  var next = ev.shiftKey ? current - 1 : current + 1;
+  if (next < 0) next = fields.length - 1;
+  if (next >= fields.length) next = 0;
+  fields[next].focus();
+}
+
+function scheduleBrowserSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveProjectToBrowser, 200);
+}
+
+function saveProjectToBrowser() {
+  try {
+    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(getCurrentData()));
+  } catch (err) {
+    console.warn('Browser-Speicherung fehlgeschlagen:', err);
+  }
+}
+
+function clearBrowserProject() {
+  try {
+    localStorage.removeItem(PROJECT_STORAGE_KEY);
+  } catch (err) {
+    console.warn('Browser-Speicherung konnte nicht gelöscht werden:', err);
+  }
+}
+
+function restoreProjectData(data) {
+  if (!data) return false;
+
+  document.getElementById('projName').value = data.name || '';
+  document.getElementById('projBGF').value = formatThousands(data.bgf || 3000);
+  var lpSel = document.getElementById('projLP');
+  if (data.lp) lpSel.value = data.lp;
+
+  gewerke = (data.gewerke || []).map(function(g) {
+    return { id: g.id || uid(), name: g.name, o: g.o||0, m: g.m||0, p: g.p||0 };
+  });
+
+  renderGewerke();
+  syncBGFField();
+
+  var level = (typeof data.secLevel === 'number' && data.secLevel >= 0 && data.secLevel <= 2) ? data.secLevel : 1;
+  setSecurity(level);
+  calculate();
+  updateCurrentName();
+  return true;
+}
+
+function loadProjectFromBrowser() {
+  try {
+    var raw = localStorage.getItem(PROJECT_STORAGE_KEY);
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    return restoreProjectData(data);
+  } catch (err) {
+    console.warn('Browser-Projekt konnte nicht geladen werden:', err);
+    return false;
+  }
+}
+
+function getDemoProjectTemplate() {
+  return JSON.parse(JSON.stringify(DEMO_PROJECT_TEMPLATE));
+}
+
+function hasChartRuntime() {
+  return typeof Chart !== 'undefined';
+}
+
+function hasPdfRuntime() {
+  return !!(window.html2canvas && window.jspdf && window.jspdf.jsPDF);
+}
+
+function setInputPanel(open) {
+  var panel = document.getElementById('inputPanel');
+  var backdrop = document.getElementById('panelBackdrop');
+  var btn = document.getElementById('showInputsBtn');
+  var state = document.getElementById('workspaceState');
+  if (!panel || !backdrop || !btn || !state) return;
+  if (inputPanelIsOpen === open) return;
+  panel.classList.toggle('is-open', open);
+  backdrop.classList.toggle('is-visible', open);
+  btn.classList.toggle('active', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+  state.textContent = open ? 'Eingaben geöffnet' : 'Eingaben geschlossen';
+  inputPanelIsOpen = open;
+  updateBodyScrollLock();
+  if (open) {
+    setTimeout(focusFirstPanelField, 0);
+  } else {
+    btn.focus();
+  }
+}
+
+function toggleInputPanel() {
+  var panel = document.getElementById('inputPanel');
+  if (!panel) return;
+  setInputPanel(!panel.classList.contains('is-open'));
+}
+
+function closeInputPanel() {
+  setInputPanel(false);
+}
+
+function openStorageHelp() {
+  var overlay = document.getElementById('storageHelpOverlay');
+  if (!overlay) return;
+  if (storageHelpIsOpen) return;
+  overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden', 'false');
+  storageHelpIsOpen = true;
+  updateBodyScrollLock();
+}
+
+function closeStorageHelp() {
+  var overlay = document.getElementById('storageHelpOverlay');
+  if (!overlay) return;
+  if (!storageHelpIsOpen) return;
+  overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden', 'true');
+  storageHelpIsOpen = false;
+  updateBodyScrollLock();
+}
+
+document.addEventListener('keydown', function(ev) {
+  trapPanelTab(ev);
+  if (ev.key === 'Escape') {
+    closeInputPanel();
+    closeStorageHelp();
+  }
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'storageHelpOverlay') closeStorageHelp();
+});
+
+// ——— GEWERK CRUD ———
+function addGewerk() {
+  gewerke.push({ id: uid(), name: 'Neues Gewerk', o: 0, m: 0, p: 0 });
+  renderGewerke();
+  calculate();
+  scheduleBrowserSave();
+}
+
+function removeGewerk(id) {
+  gewerke = gewerke.filter(function(g) { return g.id !== id; });
+  renderGewerke();
+  calculate();
+  scheduleBrowserSave();
+}
+
+function updateGewerk(id, field, val) {
+  var g = gewerke.find(function(g) { return g.id === id; });
+  if (!g) return;
+  g[field] = (field === 'name') ? val : (parseFloat(val) || 0);
+  calculate();
+  scheduleBrowserSave();
+}
+
+function renderGewerke() {
+  var list = document.getElementById('gewerkeListe');
+  var FK = ['o','m','p'];
+  var FC = ['#1d4ed8','#065f46','#991b1b'];
+  var FL = ['Optimistisch','Wahrscheinlich','Pessimistisch'];
+
+  list.innerHTML = gewerke.map(function(g, i) {
+    var dot = '<span class="gewerk-color-dot" style="background:' + COLORS[i % COLORS.length] + '"></span>';
+    var nameInp = '<input type="text" class="gewerk-name-input" value="' + g.name.replace(/"/g,'&quot;') + '"'
+      + ' onchange="updateGewerk(\'' + g.id + '\',\'name\',this.value)">';
+
+    var cols = FK.map(function(field, fi) {
+      var v = g[field] || 0;
+      return '<div>'
+        + '<div class="num-wrapper">'
+        + '<div class="num-display" id="disp_' + g.id + '_' + field + '" tabindex="0" role="button" aria-label="' + FL[fi] + ' für ' + g.name + '" onclick="startEdit(\'' + g.id + '\',\'' + field + '\')" onfocus="startEdit(\'' + g.id + '\',\'' + field + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();startEdit(\'' + g.id + '\',\'' + field + '\');}">' + fmtInput(v) + '</div>'
+        + '<input class="num-edit" id="edit_' + g.id + '_' + field + '" type="number" value="' + v + '"'
+        + ' onblur="endEdit(\'' + g.id + '\',\'' + field + '\',this.value)"'
+        + ' onkeydown="if(event.key===\'Enter\')this.blur()" placeholder="0">'
+        + '</div>'
+        + '<div class="input-hint" style="color:' + FC[fi] + '">' + FL[fi] + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="gewerk-row">'
+      + '<button class="del-btn" onclick="removeGewerk(\'' + g.id + '\')">✕</button>'
+      + '<div class="gewerk-name">'
+      + '<div class="gewerk-name-dot-wrap">' + dot + nameInp + '</div>'
+      + '</div>'
+      + '<div class="gewerk-inputs">' + cols + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function startEdit(id, field) {
+  var disp = document.getElementById('disp_' + id + '_' + field);
+  var edit = document.getElementById('edit_' + id + '_' + field);
+  disp.classList.add('editing');
+  edit.classList.add('editing');
+  edit.focus(); edit.select();
+}
+
+function endEdit(id, field, val) {
+  updateGewerk(id, field, val);
+  var disp = document.getElementById('disp_' + id + '_' + field);
+  var edit = document.getElementById('edit_' + id + '_' + field);
+  var g = gewerke.find(function(g) { return g.id === id; });
+  if (disp && g) disp.textContent = fmtInput(g[field]);
+  disp.classList.remove('editing');
+  edit.classList.remove('editing');
+}
+
+function setSecurity(level) {
+  secLevel = level;
+  document.querySelectorAll('.sec-btn').forEach(function(btn, i) {
+    btn.classList.toggle('active', i === level);
+  });
+  document.getElementById('secDesc').innerHTML = SEC_DESCS[level];
+  calculate();
+  scheduleBrowserSave();
+}
+
+// ——— CALCULATION ———
+function pert(o, m, p) {
+  var ew = (o + 4*m + p) / 6;
+  var sd = (p - o) / 6;
+  return { ew: ew, sd: sd, variance: sd*sd };
+}
+
+function calculate() {
+  if (gewerke.length === 0) { clearResults(); return; }
+
+  var results = gewerke.map(function(g) {
+    var r = pert(g.o, g.m, g.p);
+    return { name: g.name, o: g.o, m: g.m, p: g.p, ew: r.ew, sd: r.sd, variance: r.variance };
+  });
+
+  var totalEW       = results.reduce(function(s,r) { return s + r.ew; }, 0);
+  var totalVariance = results.reduce(function(s,r) { return s + r.variance; }, 0);
+  var totalSD       = Math.sqrt(totalVariance);
+
+  document.getElementById('kpiEW').textContent  = fmtShort(totalEW);
+  document.getElementById('kpi84').textContent  = fmtShort(totalEW + totalSD);
+  document.getElementById('kpi975').textContent = fmtShort(totalEW + 2*totalSD);
+  document.getElementById('kpiSD').textContent  = fmtShort(totalSD);
+
+  var bgf   = parseFormattedNumber(document.getElementById('projBGF').value);
+  var lp    = document.getElementById('projLP').value;
+  var pname = document.getElementById('projName').value;
+  document.getElementById('projInfo').textContent = pname + ' · ' + lp + ' · ' + formatThousands(bgf) + ' m² BGF';
+
+  // Rows
+  var tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = results.map(function(r) {
+    return '<tr>'
+      + '<td>' + r.name + '</td>'
+      + '<td>' + fmt(r.o) + '</td>'
+      + '<td>' + fmt(r.m) + '</td>'
+      + '<td>' + fmt(r.p) + '</td>'
+      + '<td style="font-weight:600;color:var(--navy)">' + fmt(r.ew) + '</td>'
+      + '<td style="color:var(--muted)">' + fmt(r.sd) + '</td>'
+      + '<td style="color:var(--muted)">' + fmtVariance(r.variance) + '</td>'
+      + '<td style="color:var(--accent)">' + fmt(r.p - r.o) + '</td>'
+      + '<td style="color:var(--muted);font-size:0.8rem">' + fmtBGF(r.ew, bgf) + '</td>'
+      + '</tr>';
+  }).join('');
+
+  // Footer totals
+  var tO    = results.reduce(function(s,r){ return s+r.o; },0);
+  var tM    = results.reduce(function(s,r){ return s+r.m; },0);
+  var tP    = results.reduce(function(s,r){ return s+r.p; },0);
+  var tSpan = results.reduce(function(s,r){ return s+(r.p-r.o); },0);
+
+  var bgfNote = bgf > 0
+    ? '<br><span style="font-size:0.7rem;font-weight:400;opacity:0.65;">Kennzahl: Gesamtkosten ÷ '
+      + new Intl.NumberFormat('de-DE').format(bgf) + ' m² BGF</span>'
+    : '';
+
+  document.getElementById('resultsFoot').innerHTML =
+    '<tr>'
+    + '<td>Gesamt (aggregiert)'
+    + bgfNote + '</td>'
+    + '<td>' + fmt(tO)    + '<br><span style="font-size:0.78rem;opacity:0.8">' + fmtBGF(tO,bgf)        + '</span></td>'
+    + '<td>' + fmt(tM)    + '<br><span style="font-size:0.78rem;opacity:0.8">' + fmtBGF(tM,bgf)        + '</span></td>'
+    + '<td>' + fmt(tP)    + '<br><span style="font-size:0.78rem;opacity:0.8">' + fmtBGF(tP,bgf)        + '</span></td>'
+    + '<td style="font-weight:700">' + fmt(totalEW) + '<br><span style="font-size:0.78rem;font-weight:500">' + fmtBGF(totalEW,bgf) + '</span></td>'
+    + '<td>' + fmt(totalSD) + '<br><span style="font-size:0.78rem;opacity:0.8">' + fmtBGF(totalSD,bgf) + '</span></td>'
+    + '<td>' + fmtVariance(totalVariance) + '<br><span style="font-size:0.78rem;opacity:0.4">–</span></td>'
+    + '<td>' + fmt(tSpan) + '<br><span style="font-size:0.78rem;opacity:0.8">' + fmtBGF(tSpan,bgf)    + '</span></td>'
+    + '<td style="font-weight:700">' + fmtBGF(totalEW,bgf) + '</td>'
+    + '</tr>';
+
+  updateCharts(results, totalEW, totalSD);
+  scheduleBrowserSave();
+}
+
+function clearResults() {
+  ['kpiEW','kpi84','kpi975','kpiSD'].forEach(function(id){ document.getElementById(id).textContent='–'; });
+  document.getElementById('resultsBody').innerHTML='<tr><td colspan="9" class="no-data">Noch keine Kostenpositionen erfasst.</td></tr>';
+  document.getElementById('resultsFoot').innerHTML='';
+}
+
+// ——— CHARTS ———
+function initCharts() {
+  if (!hasChartRuntime()) {
+    console.warn('Chart.js nicht verfügbar: Diagramme werden deaktiviert.');
+    chartGewerke = null;
+    chartSzenarien = null;
+    chartDist = null;
+    return;
+  }
+  var base = { responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, animation:{duration:400,easing:'easeInOutQuart'} };
+
+  chartGewerke = new Chart(document.getElementById('chartGewerke'), {
+    type: 'doughnut',
+    data: { labels:[], datasets:[{ data:[], backgroundColor:COLORS, borderWidth:2, borderColor:'#f5f2ec' }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      cutout:'62%',
+      layout:{ padding:{top:6,bottom:14,left:0,right:0} },
+      animation:{duration:400,easing:'easeInOutQuart'},
+      plugins:{
+        legend:{ display:true, position:'right', labels:{font:{family:'Inter',size:11},padding:8,usePointStyle:true} },
+        tooltip:{ callbacks:{ label:function(c){ return c.label+': '+fmtShort(c.raw); } } }
+      }
+    }
+  });
+
+  chartSzenarien = new Chart(document.getElementById('chartSzenarien'), {
+    type: 'bar',
+    data: { labels:[], datasets:[
+      { label:'Optimistisch',   data:[], backgroundColor:'rgba(13,122,78,0.75)',  borderRadius:2 },
+      { label:'Erwartungswert', data:[], backgroundColor:'rgba(15,36,68,0.90)',   borderRadius:2 },
+      { label:'Wahrscheinlich', data:[], backgroundColor:'rgba(37,99,168,0.75)',  borderRadius:2 },
+      { label:'Pessimistisch',  data:[], backgroundColor:'rgba(192,57,43,0.75)', borderRadius:2 }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:0,bottom:0}},
+      animation:{duration:400,easing:'easeInOutQuart'},
+      plugins:{ legend:{ display:true, labels:{font:{family:'Inter',size:11},usePointStyle:true,padding:8} } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{family:'Inter',size:11}} },
+        y:{ grid:{color:'rgba(0,0,0,0.05)'}, ticks:{font:{family:'Inter',size:11}, callback:function(v){return fmtShort(v);}} }
+      }
+    }
+  });
+
+  chartDist = new Chart(document.getElementById('chartDist'), {
+    type: 'line',
+    data: { labels:[], datasets:[
+      { label:'Wahrscheinlichkeitsdichte', data:[], borderColor:'#0f2444', backgroundColor:'rgba(15,36,68,0.08)', borderWidth:2.5, fill:true,  tension:0.4, pointRadius:0 },
+      { label:'84%-Niveau',               data:[], borderColor:'#0d7a4e', backgroundColor:'rgba(13,122,78,0.10)',  borderWidth:1.5, fill:'+1', borderDash:[5,4], tension:0, pointRadius:0 },
+      { label:'97,5%-Niveau',             data:[], borderColor:'#b8882a', backgroundColor:'rgba(184,136,42,0.10)', borderWidth:1.5, fill:'+1', borderDash:[5,4], tension:0, pointRadius:0 }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:true,
+      animation:{duration:400,easing:'easeInOutQuart'},
+      layout:{ padding:{top:62,bottom:10,left:10,right:10} },
+      plugins:{ legend:{display:false}, verticalLines:true },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ font:{family:'Inter',size:11}, maxTicksLimit:8,
+          callback: function(_,i) {
+            var vals = chartDist._xVals;
+            if (!vals) return '';
+            var v = vals[i];
+            return v>=1e6 ? (v/1e6).toFixed(2).replace('.',',')+' M' : v>=1e3 ? (v/1e3).toFixed(0)+'K' : v;
+          }
+        }},
+        y:{ display:false }
+      }
+    },
+    plugins:[{
+      id:'verticalLines',
+      afterDraw: function(chart) {
+        if (!chart._vlines || !chart._peakY) return;
+        var ctx=chart.ctx, ca=chart.chartArea, xsc=chart.scales.x;
+
+        // Draw vertical lines + labels
+        chart._vlines.forEach(function(line) {
+          var xPx = xsc.getPixelForValue(line.xIdx);
+          if (xPx < ca.left || xPx > ca.right) return;
+          ctx.save();
+          ctx.beginPath(); ctx.moveTo(xPx,ca.top); ctx.lineTo(xPx,ca.bottom);
+          ctx.strokeStyle=line.color; ctx.lineWidth=line.width||1.5;
+          ctx.setLineDash(line.dash||[]); ctx.stroke(); ctx.setLineDash([]);
+          ctx.textAlign='center';
+          ctx.font='700 12.5px Inter,sans-serif'; ctx.fillStyle=line.color;
+          ctx.fillText(line.label2, xPx, ca.top-38);
+          ctx.font='600 11px Inter,sans-serif';
+          ctx.fillText(line.label1, xPx, ca.top-22);
+          ctx.restore();
+        });
+
+        // Legend box
+        var lx=ca.left+12, peakY=chart._peakY;
+        var items=[
+          {color:'#7c3d12',label:'EW − 2 SD  ·  2,5%-Niveau', dash:[3,3]},
+          {color:'#92400e',label:'EW − 1 SD  ·  16%-Niveau',  dash:[3,3]},
+          {color:'#0f2444',label:'Erwartungswert (EW · 50%)',  dash:[]},
+          {color:'#0d7a4e',label:'EW + 1 SD  ·  84%-Niveau',  dash:[5,3]},
+          {color:'#b8882a',label:'EW + 2 SD  ·  97,5%-Niveau',dash:[5,3]}
+        ];
+        var iH=23, bH=items.length*iH+20;
+        var bY=Math.max(ca.top+4, peakY-bH/2);
+        ctx.save();
+        ctx.fillStyle='rgba(245,242,236,0.94)'; ctx.strokeStyle='rgba(180,172,160,0.7)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(lx-8,bY-8,228,bH,4); ctx.fill(); ctx.stroke();
+        items.forEach(function(item,i) {
+          var ly=bY+i*iH+6;
+          ctx.save();
+          ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx+26,ly);
+          ctx.strokeStyle=item.color; ctx.lineWidth=item.dash.length?2:3;
+          ctx.setLineDash(item.dash); ctx.stroke();
+          ctx.restore();
+          ctx.font='600 12px Inter,sans-serif'; ctx.fillStyle='#0f0e0c'; ctx.textAlign='left';
+          ctx.fillText(item.label, lx+32, ly+4);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+function updateCharts(results, totalEW, totalSD) {
+  if (!hasChartRuntime() || !chartGewerke || !chartSzenarien || !chartDist) return;
+  chartGewerke.data.labels = results.map(function(r){return r.name;});
+  chartGewerke.data.datasets[0].data = results.map(function(r){return r.ew;});
+  chartGewerke.update();
+
+  chartSzenarien.data.labels = results.map(function(r){return r.name.length>14?r.name.substr(0,14)+'…':r.name;});
+  chartSzenarien.data.datasets[0].data = results.map(function(r){return r.o;});
+  chartSzenarien.data.datasets[1].data = results.map(function(r){return r.ew;});
+  chartSzenarien.data.datasets[2].data = results.map(function(r){return r.m;});
+  chartSzenarien.data.datasets[3].data = results.map(function(r){return r.p;});
+  chartSzenarien.update();
+
+  var nPts=200, range=totalSD*4.5;
+  var xMin=totalEW-range, xMax=totalEW+range;
+  var xVals=[], yNormal=[], y84=[], y975=[];
+  var ewM2=totalEW-2*totalSD, ewM1=totalEW-totalSD;
+  var ew84=totalEW+totalSD,   ew975=totalEW+2*totalSD;
+
+  for (var i=0; i<=nPts; i++) {
+    var xv=xMin+(xMax-xMin)*i/nPts;
+    var yv=(1/(totalSD*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*Math.pow((xv-totalEW)/totalSD,2));
+    xVals.push(Math.round(xv));
+    yNormal.push(yv);
+    y84.push(xv<=ew84?null:yv);
+    y975.push(xv<=ew975?null:yv);
+  }
+
+  chartDist._xVals=xVals;
+  chartDist.data.labels=xVals;
+  chartDist.data.datasets[0].data=yNormal;
+  chartDist.data.datasets[1].data=y84;
+  chartDist.data.datasets[2].data=y975;
+
+  function findIdx(t){ return xVals.reduce(function(bi,v,i){return Math.abs(v-t)<Math.abs(xVals[bi]-t)?i:bi;},0); }
+
+  chartDist._vlines=[
+    {xIdx:findIdx(ewM2),  color:'#7c3d12',width:1.5,dash:[3,4],label1:'EW − 2 SD (2,5%)', label2:fmtShort(ewM2)},
+    {xIdx:findIdx(ewM1),  color:'#92400e',width:1.5,dash:[3,4],label1:'EW − 1 SD (16%)',  label2:fmtShort(ewM1)},
+    {xIdx:findIdx(totalEW),color:'#0f2444',width:2.5,dash:[],   label1:'Erwartungswert',   label2:fmtShort(totalEW)},
+    {xIdx:findIdx(ew84),  color:'#0d7a4e',width:1.5,dash:[5,4],label1:'EW + 1 SD (84%)',  label2:fmtShort(ew84)},
+    {xIdx:findIdx(ew975), color:'#b8882a',width:1.5,dash:[5,4],label1:'EW + 2 SD (97,5%)',label2:fmtShort(ew975)}
+  ];
+
+  chartDist.update('none');
+  var sc=chartDist.scales;
+  if (sc && sc.y) chartDist._peakY=sc.y.getPixelForValue(Math.max.apply(null,yNormal));
+  chartDist.update();
+}
+
+// ——— PDF EXPORT ———
+async function exportPDF() {
+  var btn = document.querySelector('button[onclick="exportPDF()"]');
+  var origText = btn.textContent;
+  btn.textContent = '⏳ Wird erstellt…';
+  btn.disabled = true;
+  await new Promise(function(r){ setTimeout(r, 150); });
+
+  try {
+    if (!hasPdfRuntime()) {
+      throw new Error('PDF-Bibliotheken sind nicht verfügbar. Bitte App mit lokal eingebundenen Runtime-Dateien ausführen.');
+    }
+    var jsPDF = window.jspdf.jsPDF;
+
+    // ── Project data ──────────────────────────────────────
+    var pn  = document.getElementById('projName').value || 'PERT-Methode';
+    var lp  = document.getElementById('projLP').value;
+    var bgf = parseFormattedNumber(document.getElementById('projBGF').value);
+    var ds  = new Date().toLocaleDateString('de-DE');
+
+    var results = gewerke.map(function(g) {
+      var r = pert(g.o, g.m, g.p);
+      return { name:g.name, o:g.o, m:g.m, p:g.p, ew:r.ew, sd:r.sd, variance:r.variance };
+    });
+    var totalEW  = results.reduce(function(s,r){ return s+r.ew; }, 0);
+    var totalVar = results.reduce(function(s,r){ return s+r.variance; }, 0);
+    var totalSD  = Math.sqrt(totalVar);
+    var secNames   = ['50%', '84%', '97,5%'];
+    var secLabels  = ['Erwartungswert (50%)', 'Budget+ (84%)', 'Konservativ (97,5%)'];
+    var secDescs   = [
+      'Operative Projektsteuerung. \u00dcberschreitungswahrscheinlichkeit ca. 50 %.',
+      'Empfohlen f\u00fcr dynamische Marktumfelder. \u00dcberschreitungsrisiko ca. 16 %.',
+      'F\u00fcr risikoaverse Investoren und Finanzierungsentscheidungen. Risiko ca. 2,5 %.'
+    ];
+    var secBudgets = [totalEW, totalEW + totalSD, totalEW + 2*totalSD];
+
+    // ── PDF-safe number formatters (no EUR symbol, no special chars) ──
+    function pFmt(n) {
+      if (isNaN(n) || n === 0) return '-';
+      return new Intl.NumberFormat('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}).format(n) + ' EUR';
+    }
+    function pFmtShort(n) {
+      if (isNaN(n) || n === 0) return '-';
+      if (n >= 1e6) return (n/1e6).toFixed(2).replace('.',',') + ' Mio. EUR';
+      if (n >= 1e3) return (n/1e3).toFixed(0) + ' T EUR';
+      return pFmt(n);
+    }
+    function pFmtBGF(val, bgf2) {
+      if (!bgf2 || bgf2 <= 0 || isNaN(val) || val === 0) return '-';
+      return new Intl.NumberFormat('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}).format(val/bgf2) + ' EUR/m\u00b2';
+    }
+    function pFmtVar(n) {
+      if (isNaN(n) || n === 0) return '-';
+      var mio = n / 1e6;
+      return new Intl.NumberFormat('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}).format(mio) + ' Mio. EUR\u00b2';
+    }
+    var pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4', compress:true });
+    var PW = 297, PH = 210, TOTAL_PAGES = 3;
+    var M = 6; // margin
+
+    // ── Colors (RGB arrays) ───────────────────────────────
+    var C = {
+      navy:   [15,  36,  68],
+      gold:   [184, 136, 42],
+      green:  [13,  122, 78],
+      red:    [192, 57,  43],
+      muted:  [107, 114, 128],
+      ink:    [17,  24,  39],
+      lgray:  [240, 242, 245],
+      dgray:  [226, 229, 234],
+      white:  [255, 255, 255],
+      lnavy:  [30,  58,  95],
+      lblue:  [180, 190, 210],
+    };
+    var secAccents = [C.muted, C.green, C.gold];
+
+    function fill(c)   { pdf.setFillColor(c[0],c[1],c[2]); }
+    function stroke(c) { pdf.setDrawColor(c[0],c[1],c[2]); }
+    function ink(c)    { pdf.setTextColor(c[0],c[1],c[2]); }
+
+    function card(x,y,w,h) {
+      fill(C.white); stroke(C.dgray);
+      pdf.setLineWidth(0.25);
+      pdf.roundedRect(x,y,w,h,1,1,'FD');
+    }
+
+    function sectionTitle(text, x, y, w) {
+      fill(C.lgray); pdf.rect(x, y, w, 7, 'F');
+      fill(C.navy);  pdf.rect(x, y, 3, 7, 'F');
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5); ink(C.navy);
+      pdf.text(text, x+6, y+5);
+    }
+
+    function drawFooter(page) {
+      fill(C.navy); pdf.rect(0, PH-10, PW, 10, 'F');
+      stroke(C.gold); pdf.setLineWidth(0.5); pdf.line(0, PH-10, PW, PH-10);
+      ink(C.lblue); pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      pdf.text(pn+' - '+lp+' - '+(bgf||'-')+' m2 BGF - '+ds, M, PH-3.8);
+      ink([220,228,240]); pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5);
+      pdf.text('Seite '+page+' von '+TOTAL_PAGES, PW/2, PH-3.8, {align:'center'});
+      ink(C.lblue); pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      pdf.text('Bernhard Metzger | BuiltSmart Hub - www.built-smart-hub.com', PW-M, PH-3.8, {align:'right'});
+    }
+
+    function drawPageHeader(subtitle) {
+      fill(C.navy); pdf.rect(0, 0, PW, 22, 'F');
+      fill(C.gold);  pdf.rect(0, 22, PW, 0.8, 'F');
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(14); ink(C.white);
+      pdf.text('Baukostenprognose', 8, 9);
+      pdf.setFont('helvetica','italic'); pdf.setFontSize(11); ink(C.gold);
+      pdf.text('PERT-Methode', 8, 17);
+      // subtitle right
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(9); ink([200,210,225]);
+      pdf.text(subtitle || '', PW-M, 9, {align:'right'});
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); ink(C.lblue);
+      pdf.text(pn+' - '+lp+' - '+(bgf||'-')+' m2 BGF', PW-M, 16, {align:'right'});
+    }
+
+    // ── Aspect-ratio-correct image insertion ─────────────
+    function addCanvasImage(canvasId, x, y, maxW, maxH) {
+      var cv = document.getElementById(canvasId);
+      if (!cv) return;
+      var nW = cv.width, nH = cv.height;
+      var scaleW = maxW / nW, scaleH = maxH / nH;
+      var sc = Math.min(scaleW, scaleH);
+      var dW = nW * sc, dH = nH * sc;
+      var dx = x + (maxW - dW) / 2;
+      var dy = y + (maxH - dH) / 2;
+      pdf.addImage(cv.toDataURL('image/png',1.0), 'PNG', dx, dy, dW, dH);
+    }
+
+    // ═════════════════════════════════════════════════════
+    // PAGE 1 — Kennzahlen & Formeln
+    // ═════════════════════════════════════════════════════
+    drawPageHeader('Seite 1: Projektkennzahlen');
+    var Y = 25;
+
+    // ── KPI cards ────────────────────────────────────────
+    sectionTitle('Projektkennzahlen', M, Y, PW-12);
+    Y += 9;
+
+    var kpis = [
+      { label:'ERWARTUNGSWERT (EW)',     value:pFmtShort(totalEW),           sub:'EW = (O + 4M + P) / 6', accent:C.navy  },
+      { label:'BUDGET 84%-NIVEAU',       value:pFmtShort(totalEW+totalSD),   sub:'EW + 1 SD',             accent:C.green },
+      { label:'BUDGET 97,5%-NIVEAU',     value:pFmtShort(totalEW+2*totalSD), sub:'EW + 2 SD',             accent:C.gold  },
+      { label:'STANDARDABWEICHUNG (SD)', value:pFmtShort(totalSD),           sub:'SD = (P - O) / 6',      accent:C.muted },
+    ];
+    var kW = (PW - 2*M - 9) / 4, kH = 30, kGap = 3;
+    kpis.forEach(function(k, i) {
+      var x = M + i*(kW+kGap);
+      card(x, Y, kW, kH);
+      // accent bar
+      fill(k.accent); pdf.rect(x, Y, 2.5, kH, 'F');
+      // label — split if needed
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(6.5); ink(C.muted);
+      var lLines = pdf.splitTextToSize(k.label, kW-8);
+      pdf.text(lLines, x+5, Y+5);
+      // value — large, clipped to card width
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(17); ink(k.accent);
+      pdf.text(k.value, x+5, Y+20, {maxWidth: kW-7});
+      // sub formula
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7); ink(C.muted);
+      pdf.text(k.sub, x+5, Y+27, {maxWidth: kW-7});
+    });
+    Y += kH + 9;
+
+    // ── Formula cards ─────────────────────────────────────
+    sectionTitle('Berechnungsformeln', M, Y, PW-12);
+    Y += 9;
+
+    // Formulas with correct notation
+    var formulas = [
+      { label:'ERWARTUNGSWERT',
+        line1:'EW = (O + 4 x M + P) / 6',
+        line2:null,
+        desc:'Gewichteter Mittelwert. Der wahrscheinlichste Wert M wird vierfach gewichtet.' },
+      { label:'STANDARDABWEICHUNG',
+        line1:'SD = (P - O) / 6',
+        line2:null,
+        desc:'Basiert auf der 6-Sigma-Annahme: O und P liegen je 3 SD vom Erwartungswert.' },
+      { label:'GESAMTVARIANZ (AGGREGATION)',
+        line1:null, // rendered manually below
+        line2:null,
+        desc:'Varianzen werden addiert, nicht Standardabweichungen. Mathematisch korrekte Aggregation.' },
+    ];
+    var fW = (PW - 2*M - 2*kGap) / 3, fH = 32;
+
+    // Helper: render formula with true subscript positioning
+    function renderFormulaLine(segments, startX, baseY, mainPt, subPt) {
+      var cx2 = startX;
+      segments.forEach(function(seg) {
+        var sz = seg.sub ? subPt : mainPt;
+        var dy = seg.sub ? 2.0 : 0;   // shift subscript down
+        pdf.setFont('helvetica','bold');
+        pdf.setFontSize(sz);
+        ink(C.gold);
+        pdf.text(seg.text, cx2, baseY + dy);
+        cx2 += pdf.getTextWidth(seg.text); // measured at current font size
+      });
+    }
+
+    formulas.forEach(function(f, i) {
+      var x = M + i*(fW+kGap);
+      fill(C.navy); pdf.roundedRect(x, Y, fW, fH, 1, 1, 'F');
+      fill(C.gold);  pdf.rect(x, Y, 2.5, fH, 'F');
+      // label
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(6.5); ink(C.lblue);
+      pdf.text(f.label, x+5, Y+5.5);
+      // formula
+      if (i === 2) {
+        var fx = x+5, fy = Y+15;
+        pdf.setFont('helvetica','bold'); ink(C.gold);
+        // Varges = Sum(SD²)     SDges = sqrt(Varges)  — single line
+        pdf.setFontSize(9.5); pdf.text('Var', fx, fy);
+        pdf.setFontSize(6.5); pdf.text('ges', fx+5.5, fy+0.8);
+        pdf.setFontSize(9.5); pdf.text(' = Sum(SD\u00b2)', fx+10.5, fy);
+        // gap then second formula
+        var fx2 = fx+10.5+32;
+        pdf.setFontSize(9.5); pdf.text('SD', fx2, fy);
+        pdf.setFontSize(6.5); pdf.text('ges', fx2+4.5, fy+0.8);
+        pdf.setFontSize(9.5); pdf.text(' = sqrt(Var', fx2+9.5, fy);
+        pdf.setFontSize(6.5); pdf.text('ges', fx2+9.5+16.5, fy+0.8);
+        pdf.setFontSize(9.5); pdf.text(')', fx2+9.5+16.5+4.5, fy);
+      } else {
+        pdf.setFont('helvetica','bold'); pdf.setFontSize(10); ink(C.gold);
+        var fLines = pdf.splitTextToSize(f.line1, fW-8);
+        pdf.text(fLines, x+5, Y+14);
+      }
+      // desc
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7); ink([215,225,240]);
+      var dLines = pdf.splitTextToSize(f.desc, fW-8);
+      pdf.text(dLines, x+5, Y+22);
+    });
+    Y += fH + 9;
+
+    // ── Security level table ──────────────────────────────
+    sectionTitle('Sicherheitsniveaus im \u00dcberblick', M, Y, PW-12);
+    Y += 9;
+
+    var nivData = [
+      { niveau:'50% - Erwartungswert', formel:'EW',       budget:pFmtShort(totalEW),           empf:'Operative Projektsteuerung. \u00dcberschreitungswahrscheinlichkeit ca. 50 %.', c:C.muted },
+      { niveau:'84% - Budget+',        formel:'EW + 1 SD',budget:pFmtShort(totalEW+totalSD),   empf:'Empfohlen f\u00fcr dynamische Marktumfelder. \u00dcberschreitungsrisiko ca. 16 %.',  c:C.green },
+      { niveau:'97,5% - Konservativ',  formel:'EW + 2 SD',budget:pFmtShort(totalEW+2*totalSD), empf:'F\u00fcr risikoaverse Investoren und Finanzierungsentscheidungen. Risiko ca. 2,5 %.', c:C.gold },
+    ];
+    var nColW = [45, 30, 32, PW-2*M-45-30-32-3];
+    var nHdrs = ['Sicherheitsniveau','Formel','Budget','Empfehlung'];
+    var nRowH = 9, nX = M;
+    // header
+    fill(C.navy); pdf.rect(nX, Y, PW-2*M, nRowH, 'F');
+    var cx = nX;
+    nHdrs.forEach(function(h, i) {
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5); ink(C.white);
+      pdf.text(h, cx+2, Y+6.2);
+      cx += nColW[i];
+    });
+    Y += nRowH;
+    nivData.forEach(function(row, ri) {
+      var isActive = (ri === secLevel);
+      fill(isActive ? row.c : (ri%2===0 ? C.lgray : C.white));
+      pdf.rect(nX, Y, PW-2*M, nRowH, 'F');
+      // accent stripe only for inactive rows
+      if (!isActive) { fill(row.c); pdf.rect(nX, Y, 2.5, nRowH, 'F'); }
+      // active indicator badge — centered
+      if (isActive) {
+        var badgeW = 14, badgeH = 6, badgeX = PW-2*M-badgeW-1, badgeY = Y+(nRowH-badgeH)/2;
+        fill(C.white); pdf.roundedRect(badgeX, badgeY, badgeW, badgeH, 1, 1, 'F');
+        pdf.setFont('helvetica','bold'); pdf.setFontSize(6); ink(row.c);
+        // center text: use getTextWidth for horizontal, badgeY+badgeH/2+fontsize/2*0.352 for vertical
+        var tw = pdf.getTextWidth('AKTIV');
+        var tx = badgeX + (badgeW - tw) / 2;
+        var ty = badgeY + badgeH/2 + 1.8;
+        pdf.text('AKTIV', tx, ty);
+      }
+      var vals = [row.niveau, row.formel, row.budget, row.empf];
+      cx = nX;
+      vals.forEach(function(v, i) {
+        pdf.setFont('helvetica', (i===0||i===2)?'bold':'normal');
+        pdf.setFontSize(7.5);
+        // active rows: all white; inactive rows: niveau col uses accent color, rest ink
+        ink(isActive ? C.white : (i===0 ? row.c : C.ink));
+        pdf.text(v, cx+3, Y+6.2, {maxWidth: nColW[i]-4});
+        cx += nColW[i];
+      });
+      Y += nRowH;
+    });
+    stroke(C.dgray); pdf.setLineWidth(0.25); pdf.line(nX, Y, nX+PW-2*M, Y);
+
+    drawFooter(1);
+
+    // ═════════════════════════════════════════════════════
+    // PAGE 2 — Diagramme & Normalverteilung
+    // ═════════════════════════════════════════════════════
+    pdf.addPage();
+    drawPageHeader('Seite 2: Kostenverteilung & Normalverteilung');
+    Y = 25;
+
+    // ── Charts row ────────────────────────────────────────
+    sectionTitle('Kostenverteilung nach Gewerken & Szenariovergleich', M, Y, PW-12);
+    Y += 9;
+
+    var chartRowH = 72;
+    var halfW = (PW - 2*M - kGap) / 2;
+
+    card(M, Y, halfW, chartRowH);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5); ink(C.muted);
+    pdf.text('KOSTENVERTEILUNG NACH GEWERKEN', M+4, Y+6);
+    addCanvasImage('chartGewerke', M+2, Y+8, halfW-4, chartRowH-10);
+
+    card(M+halfW+kGap, Y, halfW, chartRowH);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5); ink(C.muted);
+    pdf.text('SZENARIOVERGLEICH (O / EW / M / P)', M+halfW+kGap+4, Y+6);
+    addCanvasImage('chartSzenarien', M+halfW+kGap+2, Y+8, halfW-4, chartRowH-10);
+
+    Y += chartRowH + 8;
+
+    // ── Distribution curve ────────────────────────────────
+    sectionTitle('Normalverteilungskurve - Wahrscheinlichkeitsverteilung der Baukosten', M, Y, PW-12);
+    Y += 9;
+
+    var distH = PH - 10 - Y - 2;
+    card(M, Y, PW-2*M, distH);
+
+    // Temporarily increase tick font size/color for better PDF readability
+    var origTickFont  = chartDist.options.scales.x.ticks.font;
+    var origTickColor = chartDist.options.scales.x.ticks.color;
+    chartDist.options.scales.x.ticks.font  = { family:'Inter', size:14, weight:'bold' };
+    chartDist.options.scales.x.ticks.color = '#111827';
+    chartDist.update('none');
+
+    addCanvasImage('chartDist', M+2, Y+2, PW-2*M-4, distH-4);
+
+    // Restore original tick settings
+    chartDist.options.scales.x.ticks.font  = origTickFont;
+    chartDist.options.scales.x.ticks.color = origTickColor;
+    chartDist.update('none');
+
+    drawFooter(2);
+
+    // ═════════════════════════════════════════════════════
+    // PAGE 3 — Detailauswertung
+    // ═════════════════════════════════════════════════════
+    pdf.addPage();
+    drawPageHeader('Seite 3: Detailauswertung nach Gewerken');
+    Y = 25;
+
+    // ── Active security level banner ──────────────────────
+    var secColor = secAccents[secLevel];
+    fill(secColor); pdf.roundedRect(M, Y, PW-2*M, 14, 1, 1, 'F');
+    // white pill for label
+    fill(C.white); pdf.roundedRect(M+2, Y+2, 56, 10, 1, 1, 'F');
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5); ink(secColor);
+    pdf.text('Gew\u00e4hltes Sicherheitsniveau:', M+4, Y+8.5);
+    // level name in white on colored background
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(11); ink(C.white);
+    pdf.text(secNames[secLevel]+' \u2013 '+secLabels[secLevel], M+60, Y+9);
+    // budget right
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); ink(C.white);
+    pdf.text('Budgetempfehlung: '+pFmtShort(secBudgets[secLevel]), PW-M-4, Y+6, {align:'right'});
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); ink([220,235,220]);
+    var dLines2 = pdf.splitTextToSize(secDescs[secLevel], PW-2*M-130);
+    pdf.text(dLines2, PW-M-4, Y+11, {align:'right'});
+    Y += 18;
+
+    // ── Detail table ──────────────────────────────────────
+    sectionTitle('Detailauswertung nach Gewerken', M, Y, PW-2*M);
+    Y += 9;
+
+    var tX = M, tW = PW-2*M;
+    // First column wider to fit long names like "Technische Gebäudeausrüstung"
+    var rawW = [50,22,22,24,26,20,36,22,21];
+    var colSum = rawW.reduce(function(a,b){return a+b;},0);
+    var colW = rawW.map(function(w){return w*(tW/colSum);});
+    var hdrs = ['Gewerk','O Optimist.','M Wahrsch.','P Pessimist.','Erwartungswert','SD','Varianz','Spannweite','EUR/m\u00b2 BGF'];
+    var rowH = 9, hH = 8.5;
+
+    // Table header
+    fill(C.navy); pdf.rect(tX, Y, tW, hH, 'F');
+    fill(C.gold);  pdf.rect(tX, Y+hH-0.8, tW, 0.8, 'F');
+    cx = tX;
+    hdrs.forEach(function(h, i) {
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(6.8); ink(C.white);
+      pdf.text(h, cx+(i===0?2:colW[i]-1.5), Y+5.8, {align:i===0?'left':'right'});
+      cx += colW[i];
+    });
+    Y += hH;
+
+    // Data rows
+    results.forEach(function(r, ri) {
+      fill(ri%2===0 ? C.white : C.lgray); pdf.rect(tX, Y, tW, rowH, 'F');
+      stroke(C.dgray); pdf.setLineWidth(0.15); pdf.line(tX, Y+rowH, tX+tW, Y+rowH);
+      var vals = [r.name, pFmt(r.o), pFmt(r.m), pFmt(r.p), pFmt(r.ew), pFmt(r.sd),
+                  pFmtVar(r.variance), pFmt(r.p-r.o), pFmtBGF(r.ew,bgf)];
+      var clrs = [C.ink,C.ink,C.ink,C.ink,C.navy,C.muted,C.muted,C.red,C.muted];
+      var bld  = [true,false,false,false,true,false,false,false,false];
+      cx = tX;
+      vals.forEach(function(v, i) {
+        pdf.setFont('helvetica', bld[i]?'bold':'normal');
+        pdf.setFontSize(7.5); ink(clrs[i]);
+        if (i===0) {
+          // wrap long names across row height
+          var nameLines = pdf.splitTextToSize(v, colW[0]-3);
+          pdf.text(nameLines[0], cx+2, Y+5.8);
+          if (nameLines[1]) pdf.text(nameLines[1], cx+2, Y+5.8+3.2);
+        } else {
+          pdf.text(v, cx+colW[i]-1.5, Y+5.8, {align:'right'});
+        }
+        cx += colW[i];
+      });
+      Y += rowH;
+    });
+
+    // Totals row — variance is sum of all variances
+    var tO=results.reduce(function(s,r){return s+r.o;},0);
+    var tM=results.reduce(function(s,r){return s+r.m;},0);
+    var tP=results.reduce(function(s,r){return s+r.p;},0);
+    var tSp=results.reduce(function(s,r){return s+(r.p-r.o);},0);
+    var tVar=results.reduce(function(s,r){return s+r.variance;},0); // correct: sum of variances
+    fill(C.navy); pdf.rect(tX, Y, tW, rowH+3, 'F');
+    fill(C.gold);  pdf.rect(tX, Y, tW, 1, 'F');
+    var totVals=[
+      'Gesamt (aggregiert)',pFmt(tO),pFmt(tM),pFmt(tP),pFmt(totalEW),
+      pFmt(totalSD),pFmtVar(tVar),pFmt(tSp),pFmtBGF(totalEW,bgf)
+    ];
+    cx = tX;
+    totVals.forEach(function(v, i) {
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5); ink(C.white);
+      if (i===0) {
+        pdf.text(v, cx+2, Y+5.5);
+        pdf.setFont('helvetica','normal'); pdf.setFontSize(6.5); ink(C.lblue);
+        pdf.text('Bernhard Metzger | BuiltSmart Hub', cx+2, Y+9.5);
+      } else {
+        pdf.text(v, cx+colW[i]-1.5, Y+5.5, {align:'right'});
+        var sub='';
+        if(i===1)sub=pFmtBGF(tO,bgf); else if(i===2)sub=pFmtBGF(tM,bgf);
+        else if(i===3)sub=pFmtBGF(tP,bgf); else if(i===4)sub=pFmtBGF(totalEW,bgf);
+        else if(i===5)sub=pFmtBGF(totalSD,bgf); else if(i===7)sub=pFmtBGF(tSp,bgf);
+        if(sub){ pdf.setFont('helvetica','normal'); pdf.setFontSize(6.5); ink(C.lblue);
+          pdf.text(sub, cx+colW[i]-1.5, Y+9.5, {align:'right'}); }
+      }
+      cx += colW[i];
+    });
+    Y += rowH + 3 + 6;
+
+    // ── Erläuternder Satz (dynamisch mit gewähltem Sicherheitsniveau) ──
+    var secRisiko = ['ca. 50 %', 'ca. 16 %', 'ca. 2,5 %'];
+    var zeile1 =
+      'Berechnung nach PERT-Methode (Drei-Punkt-Sch\u00e4tzung). ' +
+      'Erwartungswert: EW = (O + 4xM + P) / 6. ' +
+      'Budgetempfehlung auf Basis des gew\u00e4hlten Sicherheitsniveaus ' +
+      secNames[secLevel] + ' (EW + ' + (secLevel === 0 ? '0' : secLevel === 1 ? '1' : '2') + ' x SD). ' +
+      '\u00dcberschreitungsrisiko ' + secRisiko[secLevel] + '.';
+    var zeile2 =
+      'Alle Betr\u00e4ge in EUR. Varianz in Mio. EUR\u00b2. ' +
+      'Standardabweichungen werden \u00fcber Varianzen aggregiert (mathematisch korrekte PERT-Methode).';
+
+    // Light box behind the text
+    fill(C.lgray); pdf.rect(tX, Y-2, tW, 14, 'F');
+    fill(C.navy);  pdf.rect(tX, Y-2, 2, 14, 'F');
+
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); ink(C.ink);
+    var z1Lines = pdf.splitTextToSize(zeile1, tW-8);
+    pdf.text(z1Lines, tX+5, Y+3.5);
+    pdf.setFont('helvetica','italic'); pdf.setFontSize(7); ink(C.muted);
+    pdf.text(zeile2, tX+5, Y+3.5 + z1Lines.length*3.5 + 1);
+
+    drawFooter(3);
+
+    // ── Save ──────────────────────────────────────────────
+    pdf.save((pn||'PERT-Methode').replace(/[\s\/\\]/g,'_')+'_PERT-Methode.pdf');
+
+  } catch(e) {
+    console.error('PDF Fehler:', e);
+    alert('PDF konnte nicht erstellt werden: '+e.message);
+  }
+
+  btn.textContent = origText;
+  btn.disabled = false;
+}
+
+// ——— PROJECT MANAGEMENT (Datei-basiert, kein Browser-Speicher) ———
+
+
+function getCurrentData() {
+  return {
+    version: '1.0',
+    name:    document.getElementById('projName').value || 'Projekt',
+    bgf:     parseFormattedNumber(document.getElementById('projBGF').value),
+    lp:      document.getElementById('projLP').value,
+    secLevel: secLevel,
+    gewerke: gewerke.map(function(g) {
+      return { id: g.id, name: g.name, o: g.o, m: g.m, p: g.p };
+    }),
+    savedAt: new Date().toISOString()
+  };
+}
+
+function updateCurrentName() {
+  var name = document.getElementById('projName').value || 'Unbekanntes Projekt';
+  var lp   = document.getElementById('projLP').value || '';
+  var bgf  = formatThousands(document.getElementById('projBGF').value) || '–';
+  var el   = document.getElementById('projCurrentName');
+  if (el) el.textContent = name + ' · ' + lp + ' · ' + bgf + ' m²';
+}
+
+// Projekt als JSON-Datei herunterladen
+function saveProjectJSON() {
+  var data     = getCurrentData();
+  var filename = (data.name || 'Projekt').replace(/[\s\/\\:*?"<>|]/g, '_') + '_PERT.json';
+  var json     = JSON.stringify(data, null, 2);
+  var blob     = new Blob([json], { type: 'application/json;charset=utf-8' });
+  var url      = URL.createObjectURL(blob);
+  var a        = document.createElement('a');
+  a.href       = url;
+  a.download   = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+
+  // Visual feedback
+  var btn = document.querySelector('.proj-btn.save');
+  var orig = btn.textContent;
+  btn.textContent = '✓ Gespeichert in Downloads';
+  btn.style.background = 'var(--accent2)';
+  btn.style.borderColor = 'var(--accent2)';
+  setTimeout(function() {
+    btn.textContent = orig;
+    btn.style.background = '';
+    btn.style.borderColor = '';
+  }, 2500);
+}
+
+// Projekt aus JSON-Datei laden
+function loadProjectJSON(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data || !data.gewerke) throw new Error('Keine gültigen PERT-Projektdaten gefunden.');
+
+      document.getElementById('projName').value = data.name || '';
+      document.getElementById('projBGF').value  = formatThousands(data.bgf || 3000);
+      var lpSel = document.getElementById('projLP');
+      if (data.lp) lpSel.value = data.lp;
+
+      gewerke = (data.gewerke || []).map(function(g) {
+        return { id: g.id || uid(), name: g.name, o: g.o||0, m: g.m||0, p: g.p||0 };
+      });
+
+      renderGewerke();
+      syncBGFField();
+      if (typeof data.secLevel === 'number') setSecurity(data.secLevel);
+      calculate();
+      updateCurrentName();
+      saveProjectToBrowser();
+
+      var dt = data.savedAt ? ' (gespeichert: ' + new Date(data.savedAt).toLocaleDateString('de-DE') + ')' : '';
+      document.getElementById('projCurrentName').textContent =
+        (data.name || 'Projekt') + ' · ' + (data.lp||'') + ' · ' + (formatThousands(data.bgf || 0) || '–') + ' m²' + dt;
+
+    } catch(err) {
+      alert('Fehler beim Laden: ' + err.message + '\n\nBitte wählen Sie eine gültige PERT-.json-Datei.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Reset so same file can be loaded again
+}
+
+function promptLoadProject() {
+  showModal(
+    'Projektdatei laden',
+    'Das gespeicherte Projekt laden und aktuelles Projekt überschreiben?<br><strong style="color:var(--accent)">Tipp: Erst speichern, falls du die aktuellen Eingaben behalten möchtest!</strong>',
+    function() {
+      document.getElementById('importFile').click();
+    }
+  );
+}
+
+function loadDemoProject() {
+  var demoData = getDemoProjectTemplate();
+  showModal(
+    'Demo-Vorlage laden',
+    'Die fest im Code hinterlegte Demo-Vorlage laden und aktuelles Projekt überschreiben?<br><strong style="color:var(--accent)">Tipp: Erst speichern, falls du die aktuellen Eingaben behalten möchtest!</strong>',
+    function() {
+      restoreProjectData(demoData);
+      updateCurrentName();
+      saveProjectToBrowser();
+    }
+  );
+}
+
+// ——— MODAL HELPERS ———
+function showModal(title, text, onConfirm) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').innerHTML = text;
+  document.getElementById('confirmModal').style.display = 'flex';
+  var btn = document.getElementById('modalConfirmBtn');
+  // Remove old listener
+  var newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.addEventListener('click', function() {
+    closeModal();
+    onConfirm();
+  });
+}
+
+function closeModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+// Close on overlay click
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'confirmModal') closeModal();
+});
+
+// ——— NEW PROJECT ———
+function newProject() {
+  showModal(
+    'Neues Projekt',
+    'Aktuelles Projekt verwerfen und leere Maske öffnen?<br><strong style="color:var(--accent)">Tipp: Erst speichern, um Daten nicht zu verlieren!</strong>',
+    function() {
+      // Reset form fields
+      document.getElementById('projName').value = '';
+      document.getElementById('projBGF').value  = '';
+      document.getElementById('projLP').value   = 'LPH 2';
+
+      // Reset gewerke
+      gewerke = [];
+      renderGewerke();
+      secLevel = 1;
+      document.querySelectorAll('.sec-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === secLevel);
+      });
+      document.getElementById('secDesc').innerHTML = SEC_DESCS[secLevel];
+
+      // Reset KPI cards
+      ['kpiEW','kpi84','kpi975','kpiSD'].forEach(function(id) {
+        document.getElementById(id).textContent = '–';
+      });
+
+      // Reset table
+      document.getElementById('resultsBody').innerHTML =
+        '<tr><td colspan="9" class="no-data">Noch keine Kostenpositionen erfasst.</td></tr>';
+      document.getElementById('resultsFoot').innerHTML = '';
+      document.getElementById('projInfo').textContent = '–';
+
+      // Reset charts
+      if (chartGewerke) {
+        chartGewerke.data.labels = [];
+        chartGewerke.data.datasets[0].data = [];
+        chartGewerke.update();
+      }
+      if (chartSzenarien) {
+        chartSzenarien.data.labels = [];
+        chartSzenarien.data.datasets.forEach(function(ds){ ds.data=[]; });
+        chartSzenarien.update();
+      }
+      if (chartDist) {
+        chartDist.data.labels = [];
+        chartDist.data.datasets.forEach(function(ds){ ds.data=[]; });
+        chartDist._vlines = null;
+        chartDist._peakY  = null;
+        chartDist.update();
+      }
+
+      var el = document.getElementById('projCurrentName');
+      if (el) el.textContent = 'Kein Projekt geladen';
+      clearBrowserProject();
+      saveProjectToBrowser();
+    }
+  );
+}
+
+// ——— EVENT LISTENERS ———
+['projName','projBGF','projLP'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', function() {
+    if (id === 'projBGF') syncBGFField();
+    calculate();
+    updateCurrentName();
+    scheduleBrowserSave();
+  });
+});
+
+syncBGFField();
+
+function init() {
+  initCharts();
+  if (!loadProjectFromBrowser()) {
+    defaultGewerke.forEach(function(g) {
+      gewerke.push({ id: uid(), name: g.name, o: g.o, m: g.m, p: g.p });
+    });
+    renderGewerke();
+    syncBGFField();
+    setSecurity(1);
+    calculate();
+    updateCurrentName();
+    saveProjectToBrowser();
+  }
+  setInputPanel(false);
+}
+
+init();
+</script>
+</body>
+</html>

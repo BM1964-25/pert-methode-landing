@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PERT-Methode | Anwendung</title>
+    <link rel="stylesheet" href="./pert-app-page.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./supabase-config.js"></script>
+    <script defer src="./pert-app-page.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-topbar">
+        <div>
+          <p class="eyebrow">BuiltSmart Hub</p>
+          <h1>PERT-Methode</h1>
+          <p class="subline">Geschützte Anwendung für statistisch fundierte Baukostenprognosen</p>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn btn-light" href="./pert-dashboard.html">Zurück zum Zugang</a>
+          <button id="logoutButton" class="btn btn-secondary">Ausloggen</button>
+        </div>
+      </header>
+
+      <section id="loadingState" class="panel panel-info">
+        Zugriff wird geprüft. Bitte einen Moment warten.
+      </section>
+
+      <section id="blockedState" class="panel panel-warn hidden">
+        <p class="section-tag">Kein aktiver Zugang</p>
+        <h2>Die PERT-Anwendung ist aktuell nicht freigeschaltet.</h2>
+        <p id="blockedMessage">
+          Bitte prüfen Sie, ob Ihr Zugang aktiv ist oder wenden Sie sich an
+          info@built-smart-hub.com.
+        </p>
+        <div class="blocked-actions">
+          <a class="btn btn-primary" href="./pert-auth-portal.html">Zur Login-Seite</a>
+          <a class="btn btn-light" href="./pert-dashboard.html">Zum Zugang</a>
+        </div>
+      </section>
+
+      <section id="activeState" class="hidden">
+        <iframe
+          id="pertAppFrame"
+          title="PERT-Methode Anwendung"
+          src="./pert-app/index.html"
+        ></iframe>
+      </section>
+    </main>
+  </body>
+</html>

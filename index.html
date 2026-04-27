@@ -1,5 +1,4 @@
-
-                                                                    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
@@ -254,6 +253,23 @@
 
       .hero-actions .btn {
         flex: 1 1 0;
+      }
+
+      .hero-access-link,
+      .cta-access-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        color: rgba(242, 247, 245, 0.8);
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .hero-access-link:hover,
+      .hero-access-link:focus-visible {
+        color: #ffffff;
       }
 
       .hero-proof {
@@ -905,6 +921,16 @@
         line-height: 1.7;
       }
 
+      .cta-access-link {
+        margin-top: 18px;
+        color: var(--brand);
+      }
+
+      .cta-access-link:hover,
+      .cta-access-link:focus-visible {
+        color: var(--brand-strong);
+      }
+
       .btn-dark {
         background: linear-gradient(135deg, var(--brand), var(--brand-strong));
         color: #f5faf8;
@@ -1089,6 +1115,7 @@
             <a class="btn btn-primary" href="https://buy.stripe.com/28EfZh2NTfXF2tl82Kgw001" target="_blank" rel="noopener">Jahreszugang sichern</a>
             <a class="btn btn-secondary" href="#workflow">Methodik ansehen</a>
           </div>
+          <a class="hero-access-link" href="./pert-auth-portal.html">Bereits gekauft? Zum Zugang</a>
           <div class="hero-metrics">
             <article>
               <span class="metric-label">Eingabe</span>
@@ -1479,6 +1506,7 @@
             <a class="btn btn-dark" href="https://buy.stripe.com/28EfZh2NTfXF2tl82Kgw001" target="_blank" rel="noopener">Jahreszugang jetzt kaufen</a>
             <a class="btn btn-light" href="#top">Zurück nach oben</a>
           </div>
+          <a class="cta-access-link" href="./pert-auth-portal.html">Bereits gekauft? Zum Zugang</a>
         </div>
 
       </section>

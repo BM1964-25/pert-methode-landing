@@ -1,29 +1,35 @@
-# PERT Landing Public
+# PERT Public Site
 
-Dieser Ordner ist für ein separates **öffentliches GitHub-Pages-Repo** gedacht.
-
-## Enthalten
+Dieser Ordner enthält den öffentlichen Stand für:
 
 - `index.html`
-  Die aktuelle öffentliche Landingpage für die PERT-Methode.
+  Öffentliche Landingpage
+- `pert-after-purchase.html`
+  Seite nach dem Kauf
+- `pert-auth-portal.*`
+  Öffentlicher Kundenzugang
+- `pert-dashboard.*`
+  Geschützter Kundenbereich
+- `pert-app-page.*`
+  Öffentliche Hülle für die geschützte Anwendung
+- `pert-app/`
+  Eigentliche PERT-Anwendung
+- `supabase-config.js`
+  Öffentliche Supabase-Konfiguration mit Publishable Key
 
-## Empfohlener nächster Schritt
+## Veröffentlichung
 
-1. In GitHub ein **neues öffentliches Repository** anlegen
-   Beispielname:
-   `pert-methode-landing`
-2. Den Inhalt dieses Ordners in das neue Repo hochladen:
-   - `index.html`
-   - `README.md`
-3. In GitHub unter:
-   - `Settings`
-   - `Pages`
-   - `Deploy from a branch`
-   - Branch `main`
-   - Folder `/ (root)`
-4. Danach ist die Landingpage öffentlich erreichbar unter einer GitHub-Pages-URL.
+Diesen gesamten Ordner in das öffentliche GitHub-Pages-Repository `pert-methode-landing` hochladen oder dort bestehende Dateien ersetzen.
 
-## Hinweis
+Danach sind voraussichtlich erreichbar:
 
-Dieses öffentliche Repo ist bewusst nur für die Landingpage gedacht.
-Die geschützte Anwendung, Supabase-Logik und Stripe-Integration bleiben im privaten Arbeits-Repo.
+- `/`
+  Landingpage
+- `/pert-after-purchase.html`
+  Nach-Kauf-Seite
+- `/pert-auth-portal.html`
+  Kundenzugang
+- `/pert-dashboard.html`
+  Geschützter Bereich
+- `/pert-app-page.html`
+  Geschützte Anwendung

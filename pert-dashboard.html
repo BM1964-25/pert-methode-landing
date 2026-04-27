@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PERT-Methode | Geschützter Bereich</title>
+    <link rel="stylesheet" href="./pert-dashboard.css?v=3" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./supabase-config.js"></script>
+    <script defer src="./pert-dashboard.js?v=20260425-2"></script>
+  </head>
+  <body>
+    <main class="dashboard-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">BuiltSmart Hub</p>
+          <h1>PERT-Methode | Geschützter Kundenbereich</h1>
+        </div>
+        <button id="logoutButton" class="btn btn-secondary">Ausloggen</button>
+      </header>
+
+      <section id="loadingState" class="panel panel-info">
+        Zugriff wird geprüft. Bitte einen Moment warten.
+      </section>
+
+      <section id="blockedState" class="panel panel-warn hidden">
+        <p class="section-tag">Kein aktiver Zugang</p>
+        <h2>Der Zugang ist aktuell nicht freigeschaltet.</h2>
+        <p id="blockedMessage">
+          Bitte prüfen Sie, ob Ihr Zugang aktiv ist oder wenden Sie sich an
+          info@built-smart-hub.com.
+        </p>
+        <a class="btn btn-primary" href="./pert-auth-portal.html">Zur Login-Seite</a>
+      </section>
+
+      <section id="activeState" class="hidden">
+        <div class="status-grid">
+          <article class="status-card">
+            <span class="metric-label">Zugang</span>
+            <strong id="statusValue">Aktiv</strong>
+            <p id="statusCopy">Der Zugang ist freigeschaltet.</p>
+          </article>
+          <article class="status-card">
+            <span class="metric-label">Laufzeit bis</span>
+            <strong id="accessUntil">-</strong>
+            <p>Dieses Datum zeigt, bis wann Ihr Zugang aktuell freigeschaltet ist.</p>
+          </article>
+          <article class="status-card">
+            <span class="metric-label">Kündigung</span>
+            <strong id="cancelAtPeriodEnd">-</strong>
+            <p>Kündigungen laufen bis zum Ende der bereits bezahlten Laufzeit weiter.</p>
+          </article>
+        </div>
+
+        <section class="app-panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-tag">Anwendung</p>
+              <h2 class="app-heading">PERT-Methode als eigener geschützter Bereich</h2>
+            </div>
+            <div class="panel-actions">
+              <a class="btn btn-primary" href="./pert-app-page.html">PERT-Methode öffnen</a>
+            </div>
+          </div>
+          <p class="panel-copy">
+            Öffnen Sie die PERT-Methode in einem eigenen geschützten Bereich.
+            So steht die Anwendung vollständig und ohne Ablenkung für Ihre
+            Budgetprognose zur Verfügung.
+          </p>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
