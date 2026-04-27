@@ -144,6 +144,11 @@ h2 {
   margin-top: 18px;
 }
 
+.helper-text-intro {
+  margin-top: 18px;
+  margin-bottom: 2px;
+}
+
 .auth-panel {
   padding: 24px;
   border-radius: var(--radius-lg);
