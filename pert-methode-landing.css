@@ -292,8 +292,10 @@
       }
 
       .purchase-notice {
-        margin: 14px 0 0;
-        max-width: 62ch;
+        display: block;
+        width: 100%;
+        margin: 16px 0 24px;
+        max-width: none;
         color: rgba(242, 247, 245, 0.72);
         font-size: 0.84rem;
         line-height: 1.6;
