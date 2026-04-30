@@ -858,6 +858,7 @@
         border-radius: 20px;
         border: 1px solid rgba(182, 148, 82, 0.14);
         background: linear-gradient(180deg, #fffefb, #f7f2e7);
+        text-align: center;
       }
 
       .price-block.featured {
